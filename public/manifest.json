@@ -1,0 +1,25 @@
+{
+  "name": "PlayRoom",
+  "short_name": "PlayRoom",
+  "description": "La plataforma de juegos presenciales. Piedra Papel Tijera, Dominó y más.",
+  "start_url": "/hub.html",
+  "display": "standalone",
+  "background_color": "#0d0e11",
+  "theme_color": "#0d0e11",
+  "orientation": "portrait",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
