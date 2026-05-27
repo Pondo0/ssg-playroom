@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>PPT · PlayRoom</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0a0c;--bg2:#111114;--bg3:#1a1a1f;--bg4:#22222a;
+  --line:rgba(255,255,255,0.06);--line2:rgba(255,255,255,0.11);
+  --text:#edeaf5;--text2:#7a7888;--text3:#3e3d4a;
+  --p1:#5b8ef7;--p1bg:rgba(91,142,247,0.12);--p1border:rgba(91,142,247,0.3);
+  --p2:#f75b8e;--p2bg:rgba(247,91,142,0.12);--p2border:rgba(247,91,142,0.3);
+  --win:#4db87a;--winbg:rgba(77,184,122,0.12);--winborder:rgba(77,184,122,0.3);
+  --lose:#f75b5b;--losebg:rgba(247,91,91,0.12);
+  --tie:#e8c547;--tiebg:rgba(232,197,71,0.12);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:10px;padding:13px 16px;
+  border-bottom:1px solid var(--line);background:rgba(10,10,12,.9);
+  backdrop-filter:blur(16px);position:sticky;top:0;z-index:50;}
+.logo{font-size:15px;font-weight:700;letter-spacing:-.02em;}
+.logo em{color:var(--p1);font-style:normal;}
+.hdr-pill{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;
+  background:var(--p1bg);color:var(--p1);border:1px solid var(--p1border);
+  padding:3px 10px;border-radius:999px;letter-spacing:.08em;display:none;}
+
+/* LAYOUT */
+.app{max-width:480px;margin:0 auto;padding:16px 14px 90px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .22s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:10px;}
+.lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:10px;}
+
+/* INPUTS */
+input,select,textarea{width:100%;padding:11px 13px;font-size:14px;
+  font-family:'Syne',sans-serif;background:var(--bg3);border:1px solid var(--line2);
+  border-radius:var(--r-sm);color:var(--text);outline:none;transition:border .15s;}
+input:focus,select:focus{border-color:var(--p1);}
+select option{background:var(--bg2);}
+.row{display:flex;gap:8px;margin-bottom:8px;}
+.row input,.row select{flex:1;min-width:0;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 18px;border-radius:var(--r-sm);font-size:14px;font-family:'Syne',sans-serif;
+  font-weight:600;cursor:pointer;border:1px solid var(--line2);background:transparent;
+  color:var(--text);transition:all .15s;white-space:nowrap;letter-spacing:-.01em;}
+.btn:hover{background:var(--bg3);}
+.btn:active{transform:scale(.96);}
+.btn-p1{background:var(--p1bg);border-color:var(--p1border);color:var(--p1);}
+.btn-p2{background:var(--p2bg);border-color:var(--p2border);color:var(--p2);}
+.btn-win{background:var(--winbg);border-color:var(--winborder);color:var(--win);}
+.btn-full{width:100%;margin-bottom:8px;}
+.btn-ghost{border-color:transparent;color:var(--text2);}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-sm{padding:7px 12px;font-size:12px;}
+.btn-danger{background:var(--losebg);border-color:rgba(247,91,91,.3);color:var(--lose);}
+.brow{display:flex;gap:8px;margin-top:10px;}
+.brow .btn{flex:1;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--bg4);border:1px solid var(--line2);border-radius:999px;
+  padding:10px 20px;font-size:13px;font-weight:600;opacity:0;
+  transition:all .28s;pointer-events:none;z-index:200;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--losebg);border-color:rgba(247,91,91,.4);color:var(--lose);}
+.toast.ok{background:var(--winbg);border-color:rgba(77,184,122,.4);color:var(--win);}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,12,.95);
+  backdrop-filter:blur(16px);border-top:1px solid var(--line);
+  display:none;justify-content:space-around;
+  padding:8px 0 max(10px,env(safe-area-inset-bottom));}
+.bnav.show{display:flex;}
+.nitem{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 16px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:700;
+  letter-spacing:.04em;border:none;background:transparent;font-family:'Syne',sans-serif;
+  text-transform:uppercase;transition:color .15s;}
+.nitem.on{color:var(--p1);}
+.ni{font-size:19px;}
+
+/* MODAL */
+.mwrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;
+  align-items:flex-end;justify-content:center;}
+.mwrap.open{display:flex;animation:fadeUp .2s ease;}
+.modal{background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:480px;
+  padding:20px 18px max(20px,env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;}
+.mhandle{width:36px;height:4px;background:var(--bg4);border-radius:999px;margin:0 auto 16px;}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:14px;}
+
+/* HOME */
+.hero{text-align:center;padding:2.5rem 0 1.5rem;}
+.hero-glyph{font-size:56px;margin-bottom:12px;display:block;}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:-.04em;margin-bottom:6px;}
+.hero p{font-size:14px;color:var(--text2);max-width:280px;margin:0 auto;line-height:1.6;}
+.mono-in{font-family:'DM Mono',monospace !important;letter-spacing:.15em;
+  font-size:20px !important;text-align:center;text-transform:uppercase;}
+
+/* CODE DISPLAY */
+.code-box{font-family:'DM Mono',monospace;font-size:38px;font-weight:500;
+  letter-spacing:10px;text-align:center;color:var(--p1);
+  background:var(--p1bg);border:1px solid var(--p1border);
+  border-radius:var(--r);padding:1.25rem;margin:10px 0;}
+
+/* PLAYER CHIP */
+.pchip{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:var(--r-sm);
+  margin-bottom:6px;}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.av-p1{background:var(--p1bg);color:var(--p1);}
+.av-p2{background:var(--p2bg);color:var(--p2);}
+.av-win{background:var(--winbg);color:var(--win);}
+.av-tie{background:var(--tiebg);color:var(--tie);}
+.pname{flex:1;font-size:14px;font-weight:600;}
+.pmeta{font-size:11px;color:var(--text3);}
+.dot{width:7px;height:7px;border-radius:50%;}
+.don{background:var(--win);}
+.doff{background:var(--text3);}
+
+/* SETUP PILL BUTTONS */
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.opt{padding:7px 14px;border:1px solid var(--line2);border-radius:999px;
+  font-size:12px;font-weight:700;cursor:pointer;background:transparent;
+  color:var(--text2);font-family:'Syne',sans-serif;letter-spacing:.01em;transition:all .15s;}
+.opt:hover{background:var(--bg3);}
+.opt.on{background:var(--p1bg);border-color:var(--p1border);color:var(--p1);}
+
+/* MATCH ARENA — PLAYER VIEW */
+.arena{border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+.arena-header{background:var(--bg3);border:1px solid var(--line);
+  border-radius:var(--r) var(--r) 0 0;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:none;}
+.arena-body{background:var(--bg2);border:1px solid var(--line);
+  border-radius:0 0 var(--r) var(--r);padding:20px 16px;}
+.vs-row{display:flex;align-items:center;justify-content:center;gap:12px;}
+.vs-player{text-align:center;flex:1;}
+.vs-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:16px;font-weight:700;margin:0 auto 6px;}
+.vs-name{font-size:14px;font-weight:700;}
+.vs-score{font-size:28px;font-weight:800;letter-spacing:-.04em;}
+.vs-sep{font-size:13px;color:var(--text3);font-weight:700;}
+
+/* CHOICES */
+.choices{display:flex;justify-content:space-around;padding:16px 0 8px;}
+.choice{display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:14px 18px;border-radius:var(--r);border:2px solid var(--line2);
+  cursor:pointer;background:var(--bg3);transition:all .18s;min-width:80px;}
+.choice:hover{border-color:var(--p1);background:var(--p1bg);}
+.choice.picked{border-color:var(--p1);background:var(--p1bg);transform:scale(1.05);}
+.choice-icon{font-size:32px;}
+.choice-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;}
+.choice.picked .choice-label{color:var(--p1);}
+
+/* COUNTDOWN */
+.countdown{text-align:center;padding:12px 0;}
+.cd-num{font-size:64px;font-weight:800;letter-spacing:-.05em;animation:cdPulse .9s infinite;}
+@keyframes cdPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.94);}}
+
+/* REVEAL */
+.reveal-row{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 0;}
+.reveal-side{text-align:center;flex:1;}
+.reveal-icon{font-size:48px;margin-bottom:6px;}
+.reveal-name{font-size:13px;font-weight:700;color:var(--text2);}
+.result-banner{text-align:center;padding:12px 16px;border-radius:var(--r-sm);
+  font-size:15px;font-weight:700;margin:8px 0;}
+.result-banner.win{background:var(--winbg);color:var(--win);}
+.result-banner.lose{background:var(--losebg);color:var(--lose);}
+.result-banner.tie{background:var(--tiebg);color:var(--tie);}
+
+/* HOST LIVE CONTROL — 2 COLUMNS */
+.host-arena{border-radius:var(--r);border:1px solid var(--line);overflow:hidden;margin-bottom:10px;}
+.host-arena-top{background:var(--bg3);padding:12px 16px;display:flex;
+  align-items:center;justify-content:space-between;}
+.host-vs-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.hvc{padding:16px 12px;text-align:center;transition:background .2s;}
+.hvc.selected{background:var(--winbg);}
+.hvc:first-child{border-right:1px solid var(--line);}
+.hvc-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;margin:0 auto 8px;}
+.hvc-name{font-size:14px;font-weight:700;margin-bottom:10px;}
+.hvc-score{font-size:22px;font-weight:800;margin-bottom:12px;}
+.hvc-btn{width:100%;padding:10px;border-radius:var(--r-sm);font-size:13px;font-weight:700;
+  font-family:'Syne',sans-serif;cursor:pointer;border:2px solid;transition:all .15s;}
+.hvc-btn-1{background:var(--p1bg);border-color:var(--p1border);color:var(--p1);}
+.hvc-btn-1:hover{background:var(--p1);color:#fff;}
+.hvc-btn-2{background:var(--p2bg);border-color:var(--p2border);color:var(--p2);}
+.hvc-btn-2:hover{background:var(--p2);color:#fff;}
+.hvc-btn.winner-btn{background:var(--win);border-color:var(--win);color:#fff;}
+.host-arena-bottom{padding:12px 16px;background:var(--bg2);border-top:1px solid var(--line);}
+.next-round-row{display:flex;gap:8px;align-items:center;}
+.winner-badge{display:inline-flex;align-items:center;gap:6px;
+  background:var(--winbg);border:1px solid var(--winborder);border-radius:999px;
+  padding:5px 12px;font-size:12px;font-weight:700;color:var(--win);margin-bottom:8px;}
+
+/* BRACKET */
+.bracket-round{margin-bottom:16px;}
+.bracket-round-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:8px;}
+.bracket-match{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:var(--r-sm);
+  margin-bottom:6px;}
+.bm-players{flex:1;}
+.bm-p{font-size:13px;font-weight:600;padding:2px 0;display:flex;align-items:center;gap:6px;}
+.bm-p.winner{color:var(--win);}
+.bm-p.loser{color:var(--text3);}
+.bm-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);}
+.bm-score{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;min-width:30px;text-align:right;}
+
+/* SINGLE DEVICE PASS */
+.pass-screen{text-align:center;padding:2rem 1rem;}
+.pass-icon{font-size:48px;margin-bottom:12px;}
+.pass-title{font-size:20px;font-weight:800;margin-bottom:8px;}
+.pass-sub{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:1.5rem;}
+
+/* WAITING SPINNER */
+.waiting{text-align:center;padding:24px 0;color:var(--text2);font-size:14px;}
+.spinner{width:28px;height:28px;border:2px solid var(--line2);border-top-color:var(--p1);
+  border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* CHIP TAG */
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;
+  border-radius:999px;letter-spacing:.04em;}
+.tag-p1{background:var(--p1bg);color:var(--p1);}
+.tag-p2{background:var(--p2bg);color:var(--p2);}
+.tag-win{background:var(--winbg);color:var(--win);}
+.tag-gray{background:rgba(255,255,255,.06);color:var(--text2);}
+
+.sep{border:none;border-top:1px solid var(--line);margin:12px 0;}
+.mono{font-family:'DM Mono',monospace;}
+.muted{color:var(--text2);}
+.small{font-size:12px;}
+.hidden{display:none!important;}
+.fb{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+
+/* ROUND RESULT SCREEN */
+.round-result-overlay{
+  position:fixed;inset:0;z-index:180;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 20px max(80px,env(safe-area-inset-bottom));
+  background:rgba(10,10,12,.97);
+  backdrop-filter:blur(24px);
+  animation:fadeUp .28s ease;
+}
+.rr-choices{
+  display:flex;align-items:center;justify-content:center;
+  gap:20px;width:100%;max-width:340px;margin-bottom:20px;
+}
+.rr-side{
+  text-align:center;flex:1;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.rr-icon{
+  font-size:60px;line-height:1;
+  animation:iconBounce .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.rr-icon.delay{animation-delay:.12s;}
+@keyframes iconBounce{
+  from{opacity:0;transform:scale(.3) translateY(20px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+.rr-name{font-size:13px;font-weight:700;color:var(--text2);}
+.rr-vs{font-size:18px;color:var(--text3);font-weight:700;flex-shrink:0;}
+.rr-banner{
+  font-size:18px;font-weight:800;letter-spacing:-.02em;
+  padding:10px 24px;border-radius:999px;margin-bottom:24px;
+  animation:wFadeUp .3s ease both .25s;
+  opacity:0;
+}
+.rr-banner.win{background:var(--winbg);color:var(--win);border:1px solid var(--winborder);}
+.rr-banner.tie{background:var(--tiebg);color:var(--tie);border:1px solid rgba(232,197,71,.3);}
+.rr-score{
+  display:flex;gap:16px;margin-bottom:28px;
+  animation:wFadeUp .3s ease both .35s;opacity:0;
+}
+.rr-score-side{text-align:center;}
+.rr-score-val{font-size:36px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:-.04em;}
+.rr-score-lbl{font-size:11px;color:var(--text2);margin-top:2px;}
+.rr-score-sep{font-size:28px;color:var(--text3);align-self:center;font-weight:700;}
+.rr-progress-wrap{
+  width:100%;max-width:320px;margin-bottom:16px;
+  animation:wFadeUp .3s ease both .45s;opacity:0;
+}
+.rr-progress-label{
+  font-size:11px;color:var(--text3);text-align:center;
+  margin-bottom:6px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+}
+.rr-progress-track{
+  height:4px;background:rgba(255,255,255,.08);border-radius:999px;
+  overflow:hidden;
+}
+.rr-progress-fill{
+  height:100%;background:var(--p1);border-radius:999px;
+  transition:width .1s linear;
+}
+.rr-btn{
+  padding:12px 32px;border-radius:var(--r-sm);
+  background:var(--p1bg);border:1px solid var(--p1border);
+  color:var(--p1);font-size:14px;font-weight:700;
+  font-family:'Syne',sans-serif;cursor:pointer;
+  transition:all .15s;
+  animation:wFadeUp .3s ease both .5s;opacity:0;
+}
+.rr-btn:hover{background:var(--p1);color:#fff;}
+.rr-btn:active{transform:scale(.96);}
+@keyframes wFadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* WINNER SCREEN */
+.winner-screen{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 24px max(80px,env(safe-area-inset-bottom));text-align:center;background:var(--bg);}
+.winner-bg-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(77,184,122,.18) 0%,transparent 65%);pointer-events:none;}
+.winner-trophy{font-size:88px;display:block;line-height:1;animation:trophyIn .7s cubic-bezier(.34,1.56,.64,1) both .1s;}
+@keyframes trophyIn{from{opacity:0;transform:scale(.2) rotate(-20deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
+.winner-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--win);margin:20px 0 6px;opacity:0;animation:wFadeUp .4s ease both .6s;}
+.winner-name{font-size:34px;font-weight:800;letter-spacing:-.04em;color:var(--text);margin-bottom:4px;opacity:0;animation:wFadeUp .4s ease both .75s;}
+.winner-sub{font-size:13px;color:var(--text2);margin-bottom:28px;opacity:0;animation:wFadeUp .4s ease both .9s;}
+.winner-stats{display:flex;gap:10px;margin-bottom:32px;opacity:0;animation:wFadeUp .4s ease both 1s;}
+.wstat{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 16px;text-align:center;min-width:72px;}
+.wstat-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--win);}
+.wstat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.winner-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;opacity:0;animation:wFadeUp .4s ease both 1.15s;}
+@keyframes wFadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* Confetti */
+.confetti-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.confetti-wrap i{position:absolute;top:-12px;width:7px;height:7px;border-radius:1px;animation:cFall linear both;}
+@keyframes cFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}85%{opacity:1;}100%{transform:translateY(105vh) rotate(740deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">✊ <em>PPT</em> · PlayRoom</div>
+  <div class="hdr-pill" id="hdrRoom"></div>
+</div>
+
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════
+     SCREEN HOME
+══════════════════════════════ -->
+<div id="sHome" class="screen active">
+  <div class="hero">
+    <span class="hero-glyph">✊✋✌️</span>
+    <h1>Piedra Papel Tijera</h1>
+    <p>Torneos digitales o en vivo, un teléfono o muchos.</p>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Tu nombre</div>
+    <input type="text" id="nickIn" placeholder="¿Cómo te llamas?" maxlength="20" style="margin-bottom:12px;"/>
+    <div class="brow">
+      <button class="btn" style="background:var(--p1);border-color:var(--p1);color:#fff;font-weight:700;" onclick="createRoom()">Crear sala</button>
+      <button class="btn" onclick="toggleJoin()">Unirse</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="joinCard">
+    <div class="lbl">Código de sala</div>
+    <input type="text" id="codeIn" class="mono-in" placeholder="XXXXXX" maxlength="6" style="margin-bottom:10px;"/>
+    <button class="btn btn-full" style="background:var(--p1);border-color:var(--p1);color:#fff;font-weight:700;" onclick="joinRoom()">Entrar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN LOBBY
+══════════════════════════════ -->
+<div id="sLobby" class="screen">
+  <div class="code-box" id="lobbyCode">------</div>
+
+  <div class="card" id="setupCard">
+    <div class="lbl">Modo de juego</div>
+    <div class="opts" id="optMode">
+      <button class="opt on" data-v="live" onclick="setOpt('mode',this)">En vivo</button>
+      <button class="opt" data-v="digital" onclick="setOpt('mode',this)">Digital</button>
+      <button class="opt" data-v="single" onclick="setOpt('mode',this)">Un teléfono</button>
+    </div>
+    <div class="lbl">Rondas por juego</div>
+    <div class="opts" id="optRounds">
+      <button class="opt on" data-v="3" onclick="setOpt('rounds',this)">Al mejor de 3</button>
+      <button class="opt" data-v="5" onclick="setOpt('rounds',this)">Al mejor de 5</button>
+      <button class="opt" data-v="7" onclick="setOpt('rounds',this)">Al mejor de 7</button>
+      <button class="opt" data-v="open" onclick="setOpt('rounds',this)">Indefinido</button>
+    </div>
+    <div class="lbl">Tipo de torneo</div>
+    <div class="opts" id="optTournament">
+      <button class="opt on" data-v="elimination" onclick="setOpt('tournament',this)">Eliminación</button>
+      <button class="opt" data-v="round_robin" onclick="setOpt('tournament',this)">Todos vs todos</button>
+    </div>
+    <div class="lbl" id="delayLabel">Pausa entre rondas</div>
+    <div class="opts" id="optDelay">
+      <button class="opt" data-v="0" onclick="setOpt('delay',this)">Sin pausa</button>
+      <button class="opt" data-v="3" onclick="setOpt('delay',this)">3 seg</button>
+      <button class="opt on" data-v="6" onclick="setOpt('delay',this)">6 seg</button>
+      <button class="opt" data-v="10" onclick="setOpt('delay',this)">10 seg</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl fb">Jugadores <span id="pCount" class="mono small muted">0</span></div>
+    <div id="lobbyPlayers"></div>
+    <div class="row" style="margin-top:10px;" id="addPlayerRow">
+      <input type="text" id="offlineNick" placeholder="Jugador sin teléfono" maxlength="20"/>
+      <button class="btn btn-sm" onclick="addOfflinePlayer()">+ Agregar</button>
+    </div>
+  </div>
+
+  <div id="hostLobbyBtns" class="hidden">
+    <button class="btn btn-full" style="background:var(--p1);border-color:var(--p1);color:#fff;font-weight:700;font-size:15px;" onclick="startTournament()">Iniciar torneo</button>
+    <button class="btn btn-full btn-ghost btn-danger" onclick="leaveRoom()">Cerrar sala</button>
+  </div>
+  <div id="guestLobbyBtns" class="hidden">
+    <div class="waiting"><div class="spinner"></div>Esperando que el host inicie…</div>
+    <button class="btn btn-full btn-danger" onclick="leaveRoom()">Salir</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN GAME (player view)
+══════════════════════════════ -->
+<div id="sGame" class="screen">
+
+  <!-- WAITING FOR MATCH -->
+  <div id="stateWaiting" class="hidden">
+    <div class="waiting"><div class="spinner"></div>Esperando tu siguiente enfrentamiento…</div>
+    <div class="card" id="waitingInfo"></div>
+  </div>
+
+  <!-- MATCH IN PROGRESS -->
+  <div id="stateMatch" class="hidden">
+    <div class="arena">
+      <div class="arena-header">
+        <span class="small muted" id="matchLabel">Juego 1</span>
+        <span class="tag tag-gray" id="matchRoundLabel">Ronda 1</span>
+      </div>
+      <div class="arena-body">
+        <div class="vs-row">
+          <div class="vs-player">
+            <div class="vs-av av-p1" id="p1av"></div>
+            <div class="vs-name" id="p1name">—</div>
+            <div class="vs-score" style="color:var(--p1)" id="p1score">0</div>
+          </div>
+          <div class="vs-sep">vs</div>
+          <div class="vs-player">
+            <div class="vs-av av-p2" id="p2av"></div>
+            <div class="vs-name" id="p2name">—</div>
+            <div class="vs-score" style="color:var(--p2)" id="p2score">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Digital mode: choices -->
+    <div id="digitalChoices" class="card hidden">
+      <div class="lbl" id="choicesLabel">Elige tu jugada</div>
+      <div class="choices" id="choicesRow">
+        <div class="choice" onclick="makeChoice('rock')"><span class="choice-icon">✊</span><span class="choice-label">Piedra</span></div>
+        <div class="choice" onclick="makeChoice('paper')"><span class="choice-icon">✋</span><span class="choice-label">Papel</span></div>
+        <div class="choice" onclick="makeChoice('scissors')"><span class="choice-icon">✌️</span><span class="choice-label">Tijera</span></div>
+      </div>
+    </div>
+
+    <!-- Single device: pass screen -->
+<div id="passScreen" class="hidden">
+  <!-- Estado A: J1 elige -->
+  <div id="passChoiceView" class="card pass-screen">
+    <div class="pass-icon" id="passIcon">📱</div>
+    <div class="pass-title" id="passTitle">Tu turno</div>
+    <div class="pass-sub" id="passSub">Elige tu jugada</div>
+    <div class="choices">
+      <div class="choice" onclick="makeChoiceSingle('rock')"><span class="choice-icon">✊</span><span class="choice-label">Piedra</span></div>
+      <div class="choice" onclick="makeChoiceSingle('paper')"><span class="choice-icon">✋</span><span class="choice-label">Papel</span></div>
+      <div class="choice" onclick="makeChoiceSingle('scissors')"><span class="choice-icon">✌️</span><span class="choice-label">Tijera</span></div>
+    </div>
+  </div>
+  <!-- Estado B: pantalla ciega de transición -->
+  <div id="passTransition" class="card pass-screen hidden">
+    <div class="pass-icon">🙈</div>
+    <div class="pass-title" id="passTransitionTitle">¡Listo!</div>
+    <div class="pass-sub" id="passTransitionSub">Tu jugada quedó guardada. Pasa el teléfono sin mostrar la pantalla.</div>
+    <button class="btn" style="background:var(--p1);border-color:var(--p1);color:#fff;font-size:15px;font-weight:700;width:100%;margin-top:1rem;" id="passTransitionBtn" onclick="revealP2Options()">Ya tiene el teléfono →</button>
+  </div>
+</div>
+
+    <!-- Waiting for other player -->
+    <div id="waitingOther" class="card hidden">
+      <div class="waiting"><div class="spinner"></div><span id="waitingOtherText">Esperando al rival…</span></div>
+    </div>
+
+    <!-- Countdown -->
+    <div id="cdWrap" class="card hidden">
+      <div class="countdown"><div class="cd-num" id="cdNum">3</div></div>
+    </div>
+
+    <!-- Reveal -->
+    <div id="revealWrap" class="card hidden">
+      <div class="reveal-row">
+        <div class="reveal-side">
+          <div class="reveal-icon" id="rv1icon">✊</div>
+          <div class="reveal-name" id="rv1name">—</div>
+        </div>
+        <div style="font-size:18px;color:var(--text3);font-weight:700;">vs</div>
+        <div class="reveal-side">
+          <div class="reveal-icon" id="rv2icon">✊</div>
+          <div class="reveal-name" id="rv2name">—</div>
+        </div>
+      </div>
+      <div class="result-banner" id="resultBanner">—</div>
+    </div>
+
+    <!-- Live host controls (shown in game tab for host) -->
+    <div id="liveHostControls" class="hidden"></div>
+  </div>
+
+  <!-- MATCH FINISHED -->
+  <div id="stateFinished" class="hidden">
+    <div class="card" id="finishedCard"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN HOST
+══════════════════════════════ -->
+<div id="sHost" class="screen">
+
+  <div class="host-arena" id="hostArena">
+    <div class="host-arena-top">
+      <span class="small muted" id="hostMatchLabel">Sin enfrentamiento activo</span>
+      <span class="tag tag-gray" id="hostRoundLabel"></span>
+    </div>
+    <div class="host-vs-cols" id="hostVsCols">
+      <!-- Injected dynamically -->
+    </div>
+    <div class="host-arena-bottom" id="hostArenaBtm">
+      <div class="waiting muted small">Inicia el torneo para ver el primer enfrentamiento</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Bracket del torneo</div>
+    <div id="bracketView"></div>
+  </div>
+
+  <div class="brow">
+    <button class="btn btn-ghost" onclick="openModal('addPlayerModal')">+ Jugador</button>
+    <button class="btn btn-danger" onclick="leaveRoom()">Cerrar sala</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN BRACKET (spectator)
+══════════════════════════════ -->
+<div id="sBracket" class="screen">
+  <div class="card">
+    <div class="lbl">Torneo en vivo</div>
+    <div id="bracketViewSpec"></div>
+  </div>
+  <div class="card" id="currentMatchSpec">
+    <div class="lbl">Enfrentamiento actual</div>
+    <div id="currentMatchSpecContent"></div>
+  </div>
+  <div class="card" id="historyCard" style="display:none;">
+    <div class="lbl">Torneos anteriores</div>
+    <div id="tournamentHistoryList"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav" id="bnav">
+  <button class="nitem on" id="nGame" onclick="goNav('game')"><span class="ni">🎯</span>Juego</button>
+  <button class="nitem" id="nBracket" onclick="goNav('bracket')"><span class="ni">🏆</span>Bracket</button>
+  <button class="nitem hidden" id="nHost" onclick="goNav('host')"><span class="ni">🎛️</span>Host</button>
+</nav>
+
+<!-- MODAL: add offline player -->
+<div class="mwrap" id="addPlayerModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3>Agregar jugador sin teléfono</h3>
+    <div class="row"><input type="text" id="offlineNick2" placeholder="Nombre del jugador" maxlength="20"/></div>
+    <div class="brow">
+      <button class="btn" onclick="addOfflinePlayer2()">Agregar</button>
+      <button class="btn btn-ghost" onclick="closeModal('addPlayerModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDBjneB-I6UoRGx71datO9k1pEQ5eSpi_Q",
+  authDomain:"juegos-encasa.firebaseapp.com",
+  databaseURL:"https://juegos-encasa-default-rtdb.firebaseio.com",
+  projectId:"juegos-encasa",
+  storageBucket:"juegos-encasa.firebasestorage.app",
+  messagingSenderId:"535430380122",
+  appId:"1:535430380122:web:9d8d2991a6f1a141c33663"
+});
+const db = firebase.database();
+
+/* ── VERSIÓN ── */
+const GAME_ID      = 'ppt';
+const GAME_VERSION = '2.0';
+const GAME_MAJOR   = '2';
+
+/* ── HUB BOOTSTRAP ── */
+const _params  = new URLSearchParams(window.location.search);
+const _fromHub = _params.get('hub') === '1';
+const _hubNick = _params.get('nick') || '';
+const _hubCode = (_params.get('code') || '').toUpperCase();
+const _hubWasHost = _params.get('was_host') === '1'; // true if user was the original host of this room
+
+// Read hub profile from localStorage (pr_profile written by hub.html)
+function _hubProfile() {
+  try { return JSON.parse(localStorage.getItem('pr_profile') || 'null'); } catch(e) { return null; }
+}
+
+// Write a room entry to hub history so it appears in hub.html home screen
+function _hubSaveRoom(code, wasHost) {
+  if (!_fromHub) return;
+  try {
+    const raw = localStorage.getItem('pr_room_history');
+    let hist = raw ? JSON.parse(raw) : [];
+    hist = hist.filter(h => h.code !== code);
+    hist.push({ code, game: 'ppt', date: Date.now(), myName: myNick, wasHost: !!wasHost });
+    if (hist.length > 20) hist = hist.slice(-20);
+    localStorage.setItem('pr_room_history', JSON.stringify(hist));
+    // also touch lastGame in pr_stats
+    const rawStats = localStorage.getItem('pr_stats');
+    const stats = rawStats ? JSON.parse(rawStats) : { gamesPlayed:0, wins:0, losses:0 };
+    stats.lastGame = 'ppt';
+    localStorage.setItem('pr_stats', JSON.stringify(stats));
+  } catch(e) {}
+}
+
+/* ── STATE ── */
+let myId   = 'u'+Math.random().toString(36).slice(2,9);
+// Priority: URL param → hub profile → ppt_nick localStorage
+const _prof = _hubProfile();
+let myNick = _hubNick || _prof?.name || localStorage.getItem('ppt_nick') || '';
+// Reuse hub profile id if available so stats are consistent
+if (_prof?.id) myId = _prof.id;
+let roomCode='', isHost=false, roomRef=null, roomListener=null;
+let setup  = { mode:'live', rounds:3, tournament:'elimination', delay:6 };
+// neededWins helper — returns Infinity for 'open' mode
+function neededWinsFor(rounds){ return rounds==='open' ? Infinity : Math.ceil((+rounds||3)/2); }
+let cdTimer= null;
+let rrTimer = null; // round-result auto-advance timer
+
+const ICONS = { rock:'✊', paper:'✋', scissors:'✌️' };
+const BEATS = { rock:'scissors', paper:'rock', scissors:'paper' };
+const BEAT_MSG = { rock:'Piedra aplasta Tijera', paper:'Papel cubre Piedra', scissors:'Tijera corta Papel' };
+
+// Prevent re-showing winner overlay after user dismisses it
+let _winnerShown = false;
+// Track current tournament id to reset flag on new tournament
+let _currentTournamentId = null;
+// Track last seen round result ts to avoid reshowing for waiting players
+let _lastSeenResultTs = 0;
+
+function avLetters(name){ return (name||'??').slice(0,2).toUpperCase(); }
+function avClass(idx){ return idx===0?'av-p1':'av-p2'; }
+
+/* ── UTILS ── */
+let toastTmr;
+function toast(msg,type=''){
+  clearTimeout(toastTmr);
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(type||'');
+  toastTmr=setTimeout(()=>el.className='toast',2600);
+}
+function show(id){ document.getElementById(id)?.classList.remove('hidden'); }
+function hide(id){ document.getElementById(id)?.classList.add('hidden'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goNav(tab){
+  const map={game:'sGame',bracket:'sBracket',host:'sHost'};
+  showScreen(map[tab]||'sGame');
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('on'));
+  document.getElementById('n'+tab.charAt(0).toUpperCase()+tab.slice(1))?.classList.add('on');
+}
+function genCode(){
+  return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+}
+
+/* ── SETUP OPTS ── */
+function setOpt(key, el){
+  document.getElementById('opt'+key.charAt(0).toUpperCase()+key.slice(1))
+    ?.querySelectorAll('.opt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  setup[key]=key==='delay'?+el.dataset.v:el.dataset.v;
+  if(isHost) roomRef?.child('setup').set(setup);
+}
+
+/* ── HOME ── */
+if(myNick) document.getElementById('nickIn').value=myNick;
+function toggleJoin(){
+  document.getElementById('joinCard').classList.toggle('hidden');
+}
+
+async function createRoom(){
+  myNick=document.getElementById('nickIn').value.trim();
+  if(!myNick){ toast('Escribe tu nombre','err'); return; }
+  localStorage.setItem('ppt_nick',myNick);
+  isHost=true; roomCode=genCode();
+  roomRef=db.ref('ppt_rooms/'+roomCode);
+  await roomRef.set({
+    host:myId, status:'lobby', createdAt:Date.now(),
+    setup, players:{ [myId]:{id:myId,name:myNick,online:true,offline:false} },
+    matches:{}, tournament:null, currentMatchId:null,
+  });
+  roomRef.onDisconnect().remove();
+  _hubSaveRoom(roomCode, true);
+  enterLobby();
+}
+
+async function joinRoom(){
+  myNick=document.getElementById('nickIn').value.trim();
+  const code=(document.getElementById('codeIn').value||'').trim().toUpperCase();
+  if(!myNick){ toast('Escribe tu nombre','err'); return; }
+  if(code.length<4){ toast('Código inválido','err'); return; }
+  const snap=await db.ref('ppt_rooms/'+code).once('value');
+  if(!snap.exists()){
+    handleRoomNotFound(code);
+    return;
+  }
+  roomCode=code; roomRef=db.ref('ppt_rooms/'+roomCode); isHost=false;
+  localStorage.setItem('ppt_nick',myNick);
+  await roomRef.child('players/'+myId).set({id:myId,name:myNick,online:true,offline:false});
+  roomRef.child('players/'+myId).onDisconnect().update({online:false});
+  _hubSaveRoom(roomCode, false);
+  enterLobby();
+}
+
+/* ── ROOM NOT FOUND ── */
+function handleRoomNotFound(code) {
+  // Check if user was the original host of this room
+  const wasHost = _hubWasHost || (() => {
+    try {
+      const hist = JSON.parse(localStorage.getItem('pr_room_history') || '[]');
+      const entry = hist.find(h => h.code === code);
+      return !!(entry?.wasHost);
+    } catch(e) { return false; }
+  })();
+
+  if (wasHost) {
+    showRoomNotFoundHostUI(code);
+  } else {
+    showRoomNotFoundGuestUI(code);
+  }
+}
+
+function showRoomNotFoundHostUI(code) {
+  // Replace home screen with a clear "recreate" prompt
+  const homeEl = document.getElementById('sHome');
+  homeEl.innerHTML = `
+    <div style="text-align:center;padding:2.5rem 0 1.5rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🔑</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px;">Sala expirada</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;max-width:280px;margin:0 auto;">
+        La sala <span style="font-family:'DM Mono',monospace;color:var(--p1);letter-spacing:.1em;">${code}</span> ya no existe — la cerraste anteriormente.
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 18px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+        ¿Quieres crear una nueva sala con el mismo código <strong style="color:var(--text);">${code}</strong>?<br>
+        Otros jugadores que tengan el código podrán unirse.
+      </div>
+      <button class="btn btn-full" style="background:var(--p1);border-color:var(--p1);color:#fff;font-weight:700;font-size:15px;margin-bottom:8px;" onclick="recreateRoom('${code}')">
+        Recrear sala ${code}
+      </button>
+      <button class="btn btn-full btn-ghost" onclick="goToFreshHome()">
+        Crear sala nueva
+      </button>
+    </div>`;
+}
+
+function showRoomNotFoundGuestUI(code) {
+  const homeEl = document.getElementById('sHome');
+  homeEl.innerHTML = `
+    <div style="text-align:center;padding:2.5rem 0 1.5rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🚪</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px;">Sala no encontrada</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;max-width:280px;margin:0 auto;">
+        La sala <span style="font-family:'DM Mono',monospace;color:var(--p1);letter-spacing:.1em;">${code}</span> no existe o ya fue cerrada por el host.
+      </div>
+    </div>
+    <div class="card" style="padding:16px 18px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Pide al host que cree la sala de nuevo y comparta el código.</div>
+      <button class="btn btn-full btn-ghost" onclick="goToFreshHome()">← Volver</button>
+    </div>`;
+}
+
+async function recreateRoom(code) {
+  myNick = document.getElementById('nickIn')?.value?.trim() || myNick;
+  if(!myNick){ toast('Escribe tu nombre','err'); return; }
+  localStorage.setItem('ppt_nick', myNick);
+  isHost=true; roomCode=code;
+  roomRef=db.ref('ppt_rooms/'+roomCode);
+  await roomRef.set({
+    host:myId, status:'lobby', createdAt:Date.now(),
+    setup, players:{ [myId]:{id:myId,name:myNick,online:true,offline:false} },
+    matches:{}, tournament:null, currentMatchId:null,
+  });
+  roomRef.onDisconnect().remove();
+  _hubSaveRoom(roomCode, true);
+  goToFreshHome(); // reset DOM before entering lobby
+  enterLobby();
+}
+
+function goToFreshHome() {
+  // Full page reload if running standalone; just reset screen if in hub iframe
+  if(window.parent !== window) {
+    // Inside hub iframe — the hub will navigate; just show a blank loading state
+    document.getElementById('sHome').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text2);font-size:14px;"><div class="spinner"></div></div>';
+  } else {
+    window.location.reload();
+  }
+}
+
+/* ── LOBBY ── */
+function enterLobby(){
+  document.getElementById('lobbyCode').textContent=roomCode;
+  document.getElementById('hdrRoom').textContent=roomCode;
+  document.getElementById('hdrRoom').style.display='';
+  document.getElementById('hostLobbyBtns').classList.toggle('hidden',!isHost);
+  document.getElementById('guestLobbyBtns').classList.toggle('hidden',isHost);
+  document.getElementById('setupCard').classList.toggle('hidden',!isHost);
+  document.getElementById('addPlayerRow').classList.toggle('hidden',!isHost);
+  showScreen('sLobby');
+  listenRoom();
+}
+
+function renderLobbyPlayers(players){
+  const list=Object.values(players||{});
+  document.getElementById('pCount').textContent=list.length;
+  document.getElementById('lobbyPlayers').innerHTML=list.map((p,i)=>`
+    <div class="pchip">
+      <div class="av ${avClass(i%2)}">${avLetters(p.name)}</div>
+      <div><div class="pname">${p.name}${p.id===myId?' <span class="tag tag-gray">tú</span>':''}</div>
+        <div class="pmeta">${p.offline?'Sin teléfono':'Online'}</div>
+      </div>
+      <div class="dot ${p.online||p.offline?'don':'doff'}"></div>
+    </div>`).join('');
+}
+
+async function addOfflinePlayer(){
+  const nm=document.getElementById('offlineNick').value.trim();
+  if(!nm){ toast('Escribe el nombre','err'); return; }
+  const oid='offline_'+Date.now();
+  await roomRef.child('players/'+oid).set({id:oid,name:nm,online:true,offline:true});
+  document.getElementById('offlineNick').value='';
+}
+async function addOfflinePlayer2(){
+  const nm=document.getElementById('offlineNick2').value.trim();
+  if(!nm){ toast('Escribe el nombre','err'); return; }
+  const oid='offline_'+Date.now();
+  await roomRef.child('players/'+oid).set({id:oid,name:nm,online:true,offline:true});
+  document.getElementById('offlineNick2').value='';
+  closeModal('addPlayerModal');
+  toast('Jugador agregado','ok');
+}
+
+/* ── TOURNAMENT GENERATION ── */
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
+
+function generateElimination(players){
+  const ps=shuffle(players);
+  const matches={}; let i=0;
+  const round1=[]; let roundNum=1;
+  for(let j=0;j<ps.length-1;j+=2){
+    const mid='m'+Date.now()+'_'+(i++);
+    matches[mid]={id:mid,p1:ps[j].id,p2:ps[j+1].id,p1name:ps[j].name,p2name:ps[j+1].name,
+      status:'pending',score:{p1:0,p2:0},round:roundNum,winnerId:null,loserId:null};
+    round1.push(mid);
+  }
+  if(ps.length%2===1){
+    const bye=ps[ps.length-1];
+    const mid='m'+Date.now()+'_bye'+(i++);
+    matches[mid]={id:mid,p1:bye.id,p2:'bye',p1name:bye.name,p2name:'BYE',
+      status:'bye',score:{p1:0,p2:0},round:roundNum,winnerId:bye.id,loserId:'bye'};
+    round1.push(mid);
+  }
+  return {type:'elimination',rounds:{1:round1},matches,currentRound:1,currentMatchId:round1[0]||null};
+}
+
+function generateRoundRobin(players){
+  const ps=shuffle(players);
+  const matches={}; let i=0; const allM=[];
+  for(let a=0;a<ps.length;a++){
+    for(let b=a+1;b<ps.length;b++){
+      const mid='m'+Date.now()+'_'+(i++);
+      matches[mid]={id:mid,p1:ps[a].id,p2:ps[b].id,p1name:ps[a].name,p2name:ps[b].name,
+        status:'pending',score:{p1:0,p2:0},round:1,winnerId:null,loserId:null};
+      allM.push(mid);
+    }
+  }
+  return {type:'round_robin',rounds:{1:allM},matches,currentRound:1,currentMatchId:allM[0]||null};
+}
+
+async function startTournament(){
+  const snap=await roomRef.child('players').once('value');
+  const players=Object.values(snap.val()||{});
+  if(players.length<2){ toast('Necesitas al menos 2 jugadores','err'); return; }
+  const setupSnap=await roomRef.child('setup').once('value');
+  const cfg=setupSnap.val()||setup;
+  const tourney=cfg.tournament==='round_robin'
+    ? generateRoundRobin(players)
+    : generateElimination(players);
+  await roomRef.child('tournament').set(tourney);
+  await roomRef.child('status').set('playing');
+  toast('¡Torneo iniciado!','ok');
+}
+
+/* ── FIREBASE LISTENER ── */
+function listenRoom(){
+  if(roomListener) roomRef.off('value',roomListener);
+  roomListener=roomRef.on('value',snap=>{
+    if(!snap.exists()){ leaveRoomLocal(); return; }
+    const data=snap.val();
+    const players=data.players||{};
+    const cfg=data.setup||setup;
+
+    renderLobbyPlayers(players);
+
+    // Sync setup opts for non-host viewers
+    if(!isHost && data.setup) {
+      Object.assign(setup, data.setup);
+      ['mode','tournament'].forEach(key => {
+        const val = setup[key];
+        const container = document.getElementById('opt'+key.charAt(0).toUpperCase()+key.slice(1));
+        container?.querySelectorAll('.opt').forEach(b => b.classList.toggle('on', b.dataset.v===String(val)));
+      });
+      // rounds can be 'open' or a number
+      const roundsVal = String(setup.rounds??3);
+      document.getElementById('optRounds')?.querySelectorAll('.opt')
+        .forEach(b => b.classList.toggle('on', b.dataset.v===roundsVal));
+      const delayVal = String(+(setup.delay??6));
+      document.getElementById('optDelay')?.querySelectorAll('.opt')
+        .forEach(b => b.classList.toggle('on', b.dataset.v===delayVal));
+    }
+
+    if(data.status==='playing'){
+      if(!document.getElementById('sGame').classList.contains('active')&&
+         !document.getElementById('sHost').classList.contains('active')&&
+         !document.getElementById('sBracket').classList.contains('active')){
+        document.getElementById('bnav').classList.add('show');
+        if(isHost) show('nHost');
+        goNav(isHost?'host':'game');
+      }
+      const tourney=data.tournament||{};
+      setup.mode=cfg.mode||'live';
+      setup.rounds=cfg.rounds||3;
+
+      // Show round result overlay for waiting players (non-participants) via Firebase lastResult
+      const lr=tourney.lastResult;
+      if(lr && lr.ts && lr.ts!==_lastSeenResultTs){
+        _lastSeenResultTs=lr.ts;
+        const inMatch = lr.matchId && ((tourney.matches?.[lr.matchId]?.p1===myId)||(tourney.matches?.[lr.matchId]?.p2===myId));
+        // Non-participants see the overlay too (participants already got it locally)
+        if(!inMatch && !document.getElementById('roundResultOverlay')){
+          const m=lr.matchId?tourney.matches?.[lr.matchId]:null;
+          if(m && !lr.tie && m.score){
+            const winnerId=lr.winnerId;
+            showRoundResult(
+              m, m.lastChoices||null, winnerId, cfg,
+              () => {}
+            );
+          }
+        }
+      }
+
+      renderBracket(tourney,players,'bracketView');
+      renderBracket(tourney,players,'bracketViewSpec');
+      renderHostArena(tourney,players,cfg);
+      renderPlayerView(tourney,players,cfg,data);
+      renderCurrentMatchSpec(tourney,players);
+      renderTournamentHistory(data.tournament_history||{});
+    } else if(data.status==='lobby'){
+      // Host started a new tournament — close winner overlay and send everyone to lobby
+      const winnerEl=document.getElementById('winnerOverlay');
+      if(winnerEl){
+        _winnerShown=false;
+        _currentTournamentId=null;
+        _lastSeenResultTs=0;
+        winnerEl.style.transition='opacity .3s ease';
+        winnerEl.style.opacity='0';
+        setTimeout(()=>{ winnerEl.remove(); showScreen('sLobby'); },300);
+      }
+    }
+  });
+}
+
+/* ── BRACKET RENDER ── */
+function getPlayerName(pid,players){ return players[pid]?.name||pid==='bye'?'BYE':'?'; }
+
+function renderBracket(tourney,players,targetId){
+  const el=document.getElementById(targetId); if(!el) return;
+  const rounds=tourney.rounds||{};
+  const matches=tourney.matches||{};
+  let html='';
+  Object.keys(rounds).sort((a,b)=>+a-+b).forEach(rn=>{
+    const mids=rounds[rn]||[];
+    const roundName=rn==='1'?'Primera ronda':rn==='2'?'Semifinales':rn==='3'?'Final':'Ronda '+rn;
+    html+=`<div class="bracket-round"><div class="bracket-round-title">${roundName}</div>`;
+    mids.forEach(mid=>{
+      const m=matches[mid]; if(!m) return;
+      const active=tourney.currentMatchId===mid;
+      const p1win=m.winnerId===m.p1;
+      const p2win=m.winnerId===m.p2;
+      html+=`<div class="bracket-match" style="${active?'border-color:var(--p1);background:var(--p1bg);':''}">
+        <div class="bm-players">
+          <div class="bm-p ${p1win?'winner':m.winnerId&&!p1win?'loser':''}">${m.winnerId===m.p1?'🏆 ':''} ${m.p1name}</div>
+          <div class="bm-p ${p2win?'winner':m.winnerId&&!p2win?'loser':''}">${m.winnerId===m.p2?'🏆 ':''} ${m.p2name}</div>
+        </div>
+        <div>
+          <div class="bm-status">${m.status==='done'?'Finalizado':m.status==='bye'?'BYE':active?'En curso':'Pendiente'}</div>
+          ${m.status==='done'?`<div class="bm-score">${m.score.p1}–${m.score.p2}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html||'<div class="muted small">Sin rondas generadas</div>';
+}
+
+/* ── HOST ARENA ── */
+function renderHostArena(tourney,players,cfg){
+  if(!isHost) return;
+  const mid=tourney.currentMatchId;
+  const m=mid?tourney.matches?.[mid]:null;
+  if(!m){
+    const hasTourneyWinner = !!(tourney.winner);
+    document.getElementById('hostArenaBtm').innerHTML = hasTourneyWinner
+      ? `<div class="winner-badge">🏆 ${tourney.winner.name} — Campeón</div>
+         <div class="brow" style="margin-top:8px;">
+           <button class="btn btn-p1 btn-full" style="font-size:14px;" onclick="resetTournament()">🔄 Nuevo torneo</button>
+         </div>`
+      : `<div class="muted small">Inicia el torneo para ver el primer enfrentamiento</div>`;
+    return;
+  }
+
+  const neededWins=neededWinsFor(cfg.rounds);
+  const rndLabel=cfg.rounds==='open'?'Indefinido':`Mejor de ${cfg.rounds||3}`;
+  document.getElementById('hostMatchLabel').textContent=`${m.p1name} vs ${m.p2name}`;
+  document.getElementById('hostRoundLabel').textContent=rndLabel;
+
+  const won1=m.score?.p1>=neededWins;
+  const won2=m.score?.p2>=neededWins;
+
+  // Two-column player buttons
+  document.getElementById('hostVsCols').innerHTML=`
+    <div class="hvc ${won1?'selected':''}" id="hvcLeft">
+      <div class="hvc-av av-p1">${avLetters(m.p1name)}</div>
+      <div class="hvc-name">${m.p1name}</div>
+      <div class="hvc-score" style="color:var(--p1)">${m.score?.p1||0}</div>
+      ${won1
+        ? `<div class="winner-badge">🏆 Ganador</div>`
+        : `<button class="hvc-btn hvc-btn-1" onclick="hostRegisterWin('p1')">Ganó ${m.p1name}</button>`}
+    </div>
+    <div class="hvc ${won2?'selected':''}" id="hvcRight">
+      <div class="hvc-av av-p2">${avLetters(m.p2name)}</div>
+      <div class="hvc-name">${m.p2name}</div>
+      <div class="hvc-score" style="color:var(--p2)">${m.score?.p2||0}</div>
+      ${won2
+        ? `<div class="winner-badge">🏆 Ganador</div>`
+        : `<button class="hvc-btn hvc-btn-2" onclick="hostRegisterWin('p2')">Ganó ${m.p2name}</button>`}
+    </div>`;
+
+  // Bottom actions
+  const done=won1||won2;
+  const isOpen = cfg.rounds==='open';
+  document.getElementById('hostArenaBtm').innerHTML=done
+    ? `<div class="winner-badge">🏆 ${won1?m.p1name:m.p2name} gana el juego</div>
+       <div class="small muted" style="margin-top:4px;">Avanzando al siguiente enfrentamiento…</div>`
+    : `<div class="small muted">Registra el ganador de cada ronda. Empates no cuentan.</div>
+       <div class="brow" style="margin-top:8px;">
+         <button class="btn btn-sm btn-ghost" onclick="hostRegisterTie()">Empate — repetir ronda</button>
+         ${isOpen?`<button class="btn btn-sm btn-danger" onclick="hostForceEndMatch()">Terminar partida</button>`:''}
+       </div>`;
+}
+
+async function hostRegisterWin(side){
+  const snap=await roomRef.child('tournament').once('value');
+  const tourney=snap.val(); if(!tourney) return;
+  const mid=tourney.currentMatchId; if(!mid) return;
+  const m=tourney.matches[mid]; if(!m) return;
+  const cfg=(await roomRef.child('setup').once('value')).val()||setup;
+  const neededWins=neededWinsFor(cfg.rounds);
+  const newScore={...m.score, [side]:(m.score?.[side]||0)+1};
+  const updates={[`tournament/matches/${mid}/score`]:newScore};
+  const won=neededWins!==Infinity && newScore[side]>=neededWins;
+  const roundWinnerId = side==='p1' ? m.p1 : m.p2;
+  if(won){
+    const winnerId=side==='p1'?m.p1:m.p2;
+    const loserId=side==='p1'?m.p2:m.p1;
+    updates[`tournament/matches/${mid}/winnerId`]=winnerId;
+    updates[`tournament/matches/${mid}/loserId`]=loserId;
+    updates[`tournament/matches/${mid}/status`]='done';
+    updates[`tournament/lastResult`]={matchId:mid,winnerId,ts:Date.now()};
+    await roomRef.update(updates);
+    showRoundResult(
+      {...m, score: newScore}, null, roundWinnerId, cfg,
+      () => hostAdvance()
+    );
+  } else {
+    // Also append to match roundLog and notify via lastResult
+    const ts=Date.now();
+    const logEntry={winner:side, winnerId:roundWinnerId, winnerName:side==='p1'?m.p1name:m.p2name, ts};
+    updates[`tournament/matches/${mid}/roundLog`]=[...(m.roundLog||[]),logEntry];
+    updates[`tournament/lastResult`]={matchId:mid,winnerId:roundWinnerId,ts,roundOnly:true};
+    await roomRef.update(updates);
+    showRoundResult(
+      {...m, score: newScore}, null, roundWinnerId, cfg,
+      () => {}
+    );
+  }
+}
+
+async function hostForceEndMatch(){
+  // In open mode: end the current match, winner is whoever has more points
+  const snap=await roomRef.child('tournament').once('value');
+  const tourney=snap.val(); if(!tourney) return;
+  const mid=tourney.currentMatchId; if(!mid) return;
+  const m=tourney.matches[mid]; if(!m) return;
+  const score=m.score||{p1:0,p2:0};
+  if(score.p1===score.p2){ toast('Empate — no se puede terminar con marcador igualado','err'); return; }
+  const side=score.p1>score.p2?'p1':'p2';
+  const winnerId=side==='p1'?m.p1:m.p2;
+  const loserId=side==='p1'?m.p2:m.p1;
+  const updates={};
+  updates[`tournament/matches/${mid}/winnerId`]=winnerId;
+  updates[`tournament/matches/${mid}/loserId`]=loserId;
+  updates[`tournament/matches/${mid}/status`]='done';
+  updates[`tournament/lastResult`]={matchId:mid,winnerId,ts:Date.now()};
+  await roomRef.update(updates);
+  const cfg=(await roomRef.child('setup').once('value')).val()||setup;
+  showRoundResult(
+    {...m, score}, null, winnerId, {...cfg, forceEnd:true},
+    () => hostAdvance()
+  );
+}
+
+async function hostRegisterTie(){
+  toast('Empate — repiten la ronda');
+  await roomRef.child('tournament/lastResult').set({matchId:null,tie:true,ts:Date.now()});
+}
+
+async function hostAdvance(){
+  const snap=await roomRef.child('tournament').once('value');
+  const tourney=snap.val(); if(!tourney) return;
+  const cfg=(await roomRef.child('setup').once('value')).val()||setup;
+
+  if(tourney.type==='elimination'){
+    await advanceElimination(tourney,cfg);
+  } else {
+    await advanceRoundRobin(tourney);
+  }
+}
+
+async function advanceElimination(tourney,cfg){
+  const rounds=tourney.rounds||{};
+  const matches=tourney.matches||{};
+  const cr=tourney.currentRound||1;
+  const roundMatches=(rounds[cr]||[]).map(mid=>matches[mid]);
+  const pending=roundMatches.filter(m=>m.status==='pending');
+  const done=roundMatches.filter(m=>m.status==='done'||m.status==='bye');
+
+  if(pending.length>0){
+    // next pending match in current round
+    const next=pending[0];
+    await roomRef.child('tournament/currentMatchId').set(next.id);
+    // reset scores for new match
+    await roomRef.child(`tournament/matches/${next.id}/score`).set({p1:0,p2:0});
+  } else {
+    // all done → generate next round
+    const winners=done.map(m=>({id:m.winnerId,name:m.winnerId===m.p1?m.p1name:m.p2name}));
+    if(winners.length===1){
+      await roomRef.child('tournament/winner').set(winners[0]);
+      await roomRef.child('tournament/currentMatchId').set(null);
+      toast('🏆 Torneo finalizado!','ok');
+      return;
+    }
+    const newRound=cr+1;
+    const newMatches={}; const newRoundIds=[];
+    const s=shuffle(winners);
+    for(let i=0;i<s.length-1;i+=2){
+      const mid='m'+Date.now()+'_'+i;
+      newMatches[mid]={id:mid,p1:s[i].id,p2:s[i+1].id,p1name:s[i].name,p2name:s[i+1].name,
+        status:'pending',score:{p1:0,p2:0},round:newRound,winnerId:null,loserId:null};
+      newRoundIds.push(mid);
+    }
+    if(s.length%2===1){
+      const bye=s[s.length-1];
+      const mid='m'+Date.now()+'_bye';
+      newMatches[mid]={id:mid,p1:bye.id,p2:'bye',p1name:bye.name,p2name:'BYE',
+        status:'bye',score:{p1:0,p2:0},round:newRound,winnerId:bye.id,loserId:'bye'};
+      newRoundIds.push(mid);
+    }
+    const updates={};
+    Object.entries(newMatches).forEach(([k,v])=>{ updates[`tournament/matches/${k}`]=v; });
+    updates[`tournament/rounds/${newRound}`]=newRoundIds;
+    updates[`tournament/currentRound`]=newRound;
+    updates[`tournament/currentMatchId`]=newRoundIds[0];
+    await roomRef.update(updates);
+  }
+}
+
+async function advanceRoundRobin(tourney){
+  const matches=tourney.matches||{};
+  const pending=Object.values(matches).filter(m=>m.status==='pending');
+  if(pending.length>0){
+    await roomRef.child('tournament/currentMatchId').set(pending[0].id);
+    await roomRef.child(`tournament/matches/${pending[0].id}/score`).set({p1:0,p2:0});
+  } else {
+    toast('Todos contra todos — torneo finalizado','ok');
+    await roomRef.child('tournament/currentMatchId').set(null);
+  }
+}
+
+/* ── PLAYER VIEW ── */
+function renderPlayerView(tourney,players,cfg,data){
+  const mid=tourney.currentMatchId;
+  const m=mid?tourney.matches?.[mid]:null;
+  const amIP1=m&&m.p1===myId;
+  const amIP2=m&&m.p2===myId;
+  const amInMatch=amIP1||amIP2;
+  // Host in live mode: if they're a player in the match OR if it's their job to register, show match view
+  const hostShouldSeeMatch = isHost && m && (cfg.mode==='live');
+
+  hide('stateWaiting'); hide('stateMatch'); hide('stateFinished');
+
+  if(tourney.winner){
+    show('stateFinished');
+    renderFinished(tourney,players);
+    return;
+  }
+  if(!m||((!amInMatch)&&!hostShouldSeeMatch)){
+    show('stateWaiting');
+    renderWaiting(m,players,tourney,data);
+    return;
+  }
+  show('stateMatch');
+  renderMatchView(m,cfg,amIP1,tourney);
+}
+
+function renderWaiting(m,players,tourney,data){
+  const info=document.getElementById('waitingInfo');
+  if(!m){
+    info.innerHTML='<div class="muted small" style="padding:4px 0;">Todos los juegos han terminado. Esperando resultado final…</div>'; return;
+  }
+  const score=m.score||{p1:0,p2:0};
+  // Build round log entries — from roundLog array + lastChoices history
+  const roundLog=m.roundLog||[];
+  const lastChoices=m.lastChoices;
+  const logEntries=[...roundLog];
+  // Include lastChoices in log if not already there
+  if(lastChoices&&lastChoices.p1&&lastChoices.p2){
+    const exists=logEntries.some(e=>e.ts===lastChoices.ts);
+    if(!exists){
+      const p1wins=BEATS[lastChoices.p1]===lastChoices.p2;
+      const winner=lastChoices.p1===lastChoices.p2?null:(p1wins?'p1':'p2');
+      logEntries.push({
+        winner, winnerId:winner?m[winner]:null,
+        winnerName:winner?(winner==='p1'?m.p1name:m.p2name):null,
+        choice:{p1:lastChoices.p1,p2:lastChoices.p2},
+        ts:lastChoices.ts
+      });
+    }
+  }
+
+  const logHTML=logEntries.slice(-8).map((e,i)=>{
+    const n=i+1;
+    if(!e.winner&&!e.winnerId){
+      return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--text3);">
+        <span style="min-width:20px;font-family:'DM Mono',monospace;opacity:.5;">${n}</span>
+        <span>🤝 Empate</span>
+        ${e.choice?`<span style="margin-left:auto;font-size:14px;">${ICONS[e.choice.p1]||''}${ICONS[e.choice.p2]||''}</span>`:''}
+      </div>`;
+    }
+    const wname=e.winnerName||'?';
+    const wside=e.winner;
+    const lside=wside==='p1'?'p2':'p1';
+    const wc=e.choice?.[wside];
+    const lc=e.choice?.[lside];
+    const clr=wside==='p1'?'var(--p1)':'var(--p2)';
+    const msg=wc?` con ${ICONS[wc]} ${wc==='rock'?'Piedra':wc==='paper'?'Papel':'Tijera'}`:'';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);font-size:12px;">
+      <span style="min-width:20px;font-family:'DM Mono',monospace;color:var(--text3);">${n}</span>
+      <span style="font-weight:600;color:${clr};">${wname}</span><span style="color:var(--text2);">ganó${msg}</span>
+      ${e.choice?`<span style="margin-left:auto;font-size:14px;">${ICONS[e.choice.p1]||'?'} vs ${ICONS[e.choice.p2]||'?'}</span>`:''}
+    </div>`;
+  }).join('');
+
+  const cfg=data?.setup||setup;
+  const isOpen=cfg.rounds==='open';
+  const neededWins=neededWinsFor(cfg.rounds);
+  const needsLabel=neededWins===Infinity?'Indefinido':`Mejor de ${cfg.rounds||3}`;
+
+  info.innerHTML=`
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Partida en curso · ${needsLabel}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 0;">
+        <div style="text-align:center;flex:1;">
+          <div class="av av-p1" style="margin:0 auto 4px;width:34px;height:34px;font-size:12px;">${avLetters(m.p1name)}</div>
+          <div style="font-size:13px;font-weight:700;">${m.p1name}</div>
+          <div style="font-size:26px;font-weight:800;color:var(--p1);font-family:'DM Mono',monospace;">${score.p1}</div>
+        </div>
+        <div style="font-size:13px;color:var(--text3);font-weight:700;">vs</div>
+        <div style="text-align:center;flex:1;">
+          <div class="av av-p2" style="margin:0 auto 4px;width:34px;height:34px;font-size:12px;">${avLetters(m.p2name)}</div>
+          <div style="font-size:13px;font-weight:700;">${m.p2name}</div>
+          <div style="font-size:26px;font-weight:800;color:var(--p2);font-family:'DM Mono',monospace;">${score.p2}</div>
+        </div>
+      </div>
+    </div>
+    ${logEntries.length?`
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Registro de rondas</div>
+      ${logHTML}
+    </div>`:'<div class="muted small" style="text-align:center;padding:4px 0;">Esperando primera ronda…</div>'}`;
+}
+
+function renderMatchView(m,cfg,amIP1,tourney){
+  const neededWins=neededWinsFor(cfg.rounds);
+  const isOpen=cfg.rounds==='open';
+  // vs header
+  document.getElementById('p1av').textContent=avLetters(m.p1name);
+  document.getElementById('p1name').textContent=m.p1name;
+  document.getElementById('p1score').textContent=m.score?.p1||0;
+  document.getElementById('p2av').textContent=avLetters(m.p2name);
+  document.getElementById('p2name').textContent=m.p2name;
+  document.getElementById('p2score').textContent=m.score?.p2||0;
+  document.getElementById('matchLabel').textContent=`${m.p1name} vs ${m.p2name}`;
+  document.getElementById('matchRoundLabel').textContent=isOpen?'Indefinido':`Mejor de ${cfg.rounds||3}`;
+
+  const mode=cfg.mode||'live';
+  hide('digitalChoices'); hide('passScreen'); hide('waitingOther'); hide('cdWrap'); hide('revealWrap'); hide('liveHostControls');
+
+  const choices=m.choices||{};
+  const myChoice=amIP1?choices.p1:choices.p2;
+  const rivalChoice=amIP1?choices.p2:choices.p1;
+  const bothChose=choices.p1&&choices.p2;
+
+  if(mode==='digital'){
+    show('digitalChoices');
+    if(!myChoice){
+      document.getElementById('choicesLabel').textContent='Elige tu jugada';
+      document.querySelectorAll('.choice').forEach(c=>c.classList.remove('picked'));
+    } else if(!bothChose){
+      hide('digitalChoices');
+      show('waitingOther');
+      document.getElementById('waitingOtherText').textContent='Esperando al rival…';
+    }
+    if(bothChose){
+      hide('digitalChoices'); hide('waitingOther');
+      show('revealWrap');
+      renderReveal(m);
+    }
+  } else if(mode==='single'){
+    show('passScreen');
+    renderSingleDevice(m,amIP1);
+  } else {
+    // live mode — show live host controls if this player IS the host (or a live player)
+    hide('digitalChoices');
+    if(m.status==='done'){
+      show('revealWrap');
+      renderReveal(m);
+    } else {
+      // Show live round controls — host registers who won each round
+      const inMatch = m.p1===myId || m.p2===myId;
+      if(isHost && inMatch){
+        // Host is a player — show controls inline in game view
+        renderLivePlayerHostControls(m,cfg);
+      } else if(isHost){
+        // Host not playing this match — show controls
+        renderLivePlayerHostControls(m,cfg);
+      }
+      // Spectators / waiting players just see scoreboard (already rendered via vs header)
+    }
+  }
+}
+
+function renderReveal(m){
+  const choices=m.choices||{};
+  document.getElementById('rv1icon').textContent=ICONS[choices.p1]||'?';
+  document.getElementById('rv1name').textContent=m.p1name;
+  document.getElementById('rv2icon').textContent=ICONS[choices.p2]||'?';
+  document.getElementById('rv2name').textContent=m.p2name;
+  const banner=document.getElementById('resultBanner');
+  if(!choices.p1||!choices.p2){
+    banner.textContent='—'; banner.className='result-banner'; return;
+  }
+  if(choices.p1===choices.p2){
+    banner.textContent='Empate — se repite'; banner.className='result-banner tie';
+  } else if(BEATS[choices.p1]===choices.p2){
+    banner.textContent=`${m.p1name} gana · ${BEAT_MSG[choices.p1]}`; banner.className='result-banner win';
+  } else {
+    banner.textContent=`${m.p2name} gana · ${BEAT_MSG[choices.p2]}`; banner.className='result-banner win';
+  }
+}
+
+/* ── LIVE HOST CONTROLS (in-game tab for host) ── */
+function renderLivePlayerHostControls(m, cfg){
+  const el = document.getElementById('liveHostControls');
+  if(!el) return;
+  el.classList.remove('hidden');
+  const isOpen = cfg.rounds==='open';
+  const neededWins = neededWinsFor(cfg.rounds);
+  const won1 = neededWins!==Infinity && (m.score?.p1||0)>=neededWins;
+  const won2 = neededWins!==Infinity && (m.score?.p2||0)>=neededWins;
+  el.innerHTML = `
+    <div class="host-arena" style="margin-bottom:10px;">
+      <div class="host-arena-top">
+        <span class="small muted">Registrar resultado</span>
+        <span class="tag tag-gray">${isOpen?'Indefinido':'Mejor de '+cfg.rounds}</span>
+      </div>
+      <div class="host-vs-cols">
+        <div class="hvc ${won1?'selected':''}">
+          <div class="hvc-av av-p1">${avLetters(m.p1name)}</div>
+          <div class="hvc-name">${m.p1name}</div>
+          <div class="hvc-score" style="color:var(--p1)">${m.score?.p1||0}</div>
+          ${won1?`<div class="winner-badge">🏆 Ganador</div>`
+            :`<button class="hvc-btn hvc-btn-1" onclick="hostRegisterWin('p1')">Ganó ${m.p1name}</button>`}
+        </div>
+        <div class="hvc ${won2?'selected':''}">
+          <div class="hvc-av av-p2">${avLetters(m.p2name)}</div>
+          <div class="hvc-name">${m.p2name}</div>
+          <div class="hvc-score" style="color:var(--p2)">${m.score?.p2||0}</div>
+          ${won2?`<div class="winner-badge">🏆 Ganador</div>`
+            :`<button class="hvc-btn hvc-btn-2" onclick="hostRegisterWin('p2')">Ganó ${m.p2name}</button>`}
+        </div>
+      </div>
+      <div class="host-arena-bottom">
+        <div class="brow">
+          <button class="btn btn-sm btn-ghost" onclick="hostRegisterTie()">Empate</button>
+          ${isOpen?`<button class="btn btn-sm btn-danger" onclick="hostForceEndMatch()">Terminar partida</button>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+
+function showRoundResult(m, choices, roundWinnerId, cfg, onAdvance) {
+  clearRoundResultTimer();
+  document.getElementById('roundResultOverlay')?.remove();
+
+  const delay = +(cfg.delay ?? cfg.autoAdvanceDelay ?? 6);
+  const p1choice = choices?.p1;
+  const p2choice = choices?.p2;
+  const isTie = !roundWinnerId;
+  const winnerName = roundWinnerId === m.p1 ? m.p1name : roundWinnerId === m.p2 ? m.p2name : null;
+  const isMatchDone = m.status==='done' || !!(m.winnerId);
+  const isForceEnd = !!(cfg.forceEnd);
+
+  const overlay = document.createElement('div');
+  overlay.id = 'roundResultOverlay';
+  overlay.className = 'round-result-overlay';
+
+  const btnLabel = isTie ? 'Repetir ronda →'
+    : isMatchDone ? 'Ver siguiente enfrentamiento →'
+    : 'Siguiente ronda →';
+
+  overlay.innerHTML = `
+    <div class="rr-banner ${isTie?'tie':'win'}" id="rrBanner">
+      ${isTie ? '🤝 Empate — se repite la ronda'
+        : isForceEnd ? '🏁 Partida terminada · ' + winnerName + ' gana'
+        : isMatchDone ? '🏆 ' + winnerName + ' gana la partida'
+        : '🏆 ' + winnerName + ' gana la ronda'}
+    </div>
+    <div class="rr-choices">
+      <div class="rr-side">
+        <div class="rr-icon" id="rr1icon">${ICONS[p1choice]||'?'}</div>
+        <div class="rr-name" style="color:var(--p1)">${m.p1name}</div>
+      </div>
+      <div class="rr-vs">vs</div>
+      <div class="rr-side">
+        <div class="rr-icon delay" id="rr2icon">${ICONS[p2choice]||'?'}</div>
+        <div class="rr-name" style="color:var(--p2)">${m.p2name}</div>
+      </div>
+    </div>
+    <div class="rr-score">
+      <div class="rr-score-side">
+        <div class="rr-score-val" style="color:var(--p1)">${m.score?.p1||0}</div>
+        <div class="rr-score-lbl">${m.p1name}</div>
+      </div>
+      <div class="rr-score-sep">–</div>
+      <div class="rr-score-side">
+        <div class="rr-score-val" style="color:var(--p2)">${m.score?.p2||0}</div>
+        <div class="rr-score-lbl">${m.p2name}</div>
+      </div>
+    </div>
+    ${delay > 0 ? `
+    <div class="rr-progress-wrap">
+      <div class="rr-progress-label" id="rrCountLabel">Continúa en ${delay}s</div>
+      <div class="rr-progress-track">
+        <div class="rr-progress-fill" id="rrProgressFill" style="width:100%"></div>
+      </div>
+    </div>` : ''}
+    <button class="rr-btn" onclick="advanceFromRoundResult()">
+      ${btnLabel}
+    </button>`;
+
+  document.body.appendChild(overlay);
+  overlay._onAdvance = onAdvance;
+
+  if (delay <= 0) return;
+
+  let remaining = delay;
+  const fillEl = document.getElementById('rrProgressFill');
+  const labelEl = document.getElementById('rrCountLabel');
+  const tick = () => {
+    remaining -= 0.1;
+    if (fillEl) fillEl.style.width = Math.max(0, (remaining/delay)*100) + '%';
+    if (labelEl) labelEl.textContent = 'Continúa en ' + Math.ceil(Math.max(0,remaining)) + 's';
+    if (remaining <= 0) {
+      clearRoundResultTimer();
+      advanceFromRoundResult();
+    } else {
+      rrTimer = setTimeout(tick, 100);
+    }
+  };
+  rrTimer = setTimeout(tick, 100);
+}
+
+function clearRoundResultTimer() {
+  if (rrTimer) { clearTimeout(rrTimer); rrTimer = null; }
+}
+
+function advanceFromRoundResult() {
+  clearRoundResultTimer();
+  const overlay = document.getElementById('roundResultOverlay');
+  const cb = overlay?._onAdvance;
+  if (overlay) {
+    overlay.style.transition = 'opacity .2s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 220);
+  }
+  if (cb) cb();
+  // Host stays on game tab — Firebase update will re-render
+}
+
+/* ── DIGITAL CHOICE ── */
+async function makeChoice(val){
+  const snap=await roomRef.child('tournament').once('value');
+  const tourney=snap.val(); if(!tourney) return;
+  const mid=tourney.currentMatchId; if(!mid) return;
+  const m=tourney.matches[mid]; if(!m) return;
+  const side=m.p1===myId?'p1':'p2';
+  // store as plain text (simple — no crypto needed for this context)
+  await roomRef.child(`tournament/matches/${mid}/choices/${side}`).set(val);
+  document.querySelectorAll('.choice').forEach(c=>c.classList.remove('picked'));
+  document.querySelector(`.choice[onclick="makeChoice('${val}')"]`)?.classList.add('picked');
+  // check if both chose → host evaluates
+  const updated=(await roomRef.child(`tournament/matches/${mid}/choices`).once('value')).val()||{};
+  if(updated.p1&&updated.p2) await evaluateDigitalRound(mid,m,updated);
+}
+
+async function evaluateDigitalRound(mid,m,choices){
+  let newScore={...m.score};
+  let updates={};
+  const cfg=(await roomRef.child('setup').once('value')).val()||setup;
+  const neededWins=neededWinsFor(cfg.rounds);
+
+  if(choices.p1===choices.p2){
+    // tie — clear choices, repeat
+    updates[`tournament/matches/${mid}/choices`]={p1:null,p2:null};
+    updates[`tournament/lastResult`]={matchId:mid,tie:true,ts:Date.now()};
+    await roomRef.update(updates);
+    // Show tie round result — all players see it; advance clears choices
+    showRoundResult(
+      {...m, score: newScore}, choices, null, cfg,
+      () => {} // Firebase listener will re-render; choices already cleared
+    );
+  } else {
+    const p1wins=BEATS[choices.p1]===choices.p2;
+    const roundWinnerId = p1wins ? m.p1 : m.p2;
+    if(p1wins) newScore.p1=(newScore.p1||0)+1;
+    else newScore.p2=(newScore.p2||0)+1;
+    const done=neededWins!==Infinity&&(newScore.p1>=neededWins||newScore.p2>=neededWins);
+    // store last round choices for reveal + update score
+    updates[`tournament/matches/${mid}/score`]=newScore;
+    updates[`tournament/matches/${mid}/lastChoices`]={p1:choices.p1,p2:choices.p2,ts:Date.now()};
+    if(done){
+      const winnerId=newScore.p1>=neededWins?m.p1:m.p2;
+      const loserId=newScore.p1>=neededWins?m.p2:m.p1;
+      updates[`tournament/matches/${mid}/winnerId`]=winnerId;
+      updates[`tournament/matches/${mid}/loserId`]=loserId;
+      updates[`tournament/matches/${mid}/status`]='done';
+      updates[`tournament/lastResult`]={matchId:mid,winnerId,ts:Date.now()};
+    }
+    // Clear choices so next round is fresh
+    updates[`tournament/matches/${mid}/choices`]={p1:null,p2:null};
+    await roomRef.update(updates);
+
+    // Show round result overlay — all players in the room see it
+    // advance callback only runs hostAdvance on the host
+    showRoundResult(
+      {...m, score: newScore, status: done?'done':m.status}, choices, roundWinnerId, cfg,
+      () => {
+        if(done && isHost) hostAdvance();
+      }
+    );
+  }
+}
+
+/* ── SINGLE DEVICE ── */
+let singleP1Choice=null;
+function renderSingleDevice(m,amIP1){
+  const choices=m.choices||{};
+  if(!choices.p1){
+    document.getElementById('passTitle').textContent=m.p1name+', elige';
+    document.getElementById('passSub').textContent='Elige tu jugada (el rival no verá tu selección)';
+    document.getElementById('passIcon').textContent='✊';
+    singleP1Choice=null;
+    show('passChoiceView');
+    hide('passTransition');
+  } else if(!choices.p2){
+    // J1 ya eligió — mostrar transición ciega, NO las opciones de J2 todavía
+    document.getElementById('passTransitionTitle').textContent='¡'+m.p1name+' listo!';
+    document.getElementById('passTransitionSub').textContent='Jugada guardada. Pasa el teléfono a '+m.p2name+' sin mostrar la pantalla.';
+    document.getElementById('passTransitionBtn').textContent=m.p2name+' ya tiene el teléfono →';
+    hide('passChoiceView');
+    show('passTransition');
+  } else {
+    hide('passScreen');
+    show('revealWrap');
+    renderReveal(m);
+  }
+}
+
+function revealP2Options(){
+  // J2 confirma que tiene el teléfono → mostrar sus opciones
+  hide('passTransition');
+  show('passChoiceView');
+  // Actualizar los textos para J2
+  roomRef.child('tournament/currentMatchId').once('value').then(snap=>{
+    const mid=snap.val(); if(!mid) return;
+    roomRef.child('tournament/matches/'+mid).once('value').then(mSnap=>{
+      const m=mSnap.val(); if(!m) return;
+      document.getElementById('passTitle').textContent=m.p2name+', elige';
+      document.getElementById('passSub').textContent='Es tu turno — elige tu jugada';
+      document.getElementById('passIcon').textContent='✌️';
+    });
+  });
+}
+
+async function makeChoiceSingle(val){
+  const snap=await roomRef.child('tournament').once('value');
+  const tourney=snap.val(); if(!tourney) return;
+  const mid=tourney.currentMatchId; if(!mid) return;
+  const m=tourney.matches[mid]; if(!m) return;
+  const choices=m.choices||{};
+  if(!choices.p1){
+    await roomRef.child(`tournament/matches/${mid}/choices/p1`).set(val);
+  } else if(!choices.p2){
+    await roomRef.child(`tournament/matches/${mid}/choices/p2`).set(val);
+    const updated={p1:choices.p1,p2:val};
+    await evaluateDigitalRound(mid,m,updated);
+  }
+}
+
+/* ── FINISHED ── */
+function renderFinished(tourney,players){
+  const w=tourney.winner;
+  const fc=document.getElementById('finishedCard');
+  if(!w){ fc.innerHTML='<div class="muted">Torneo en curso…</div>'; return; }
+
+  // Count stats
+  const matches=Object.values(tourney.matches||{});
+  const totalMatches=matches.filter(m=>m.status==='done').length;
+  const winnerMatches=matches.filter(m=>m.winnerId===w.id).length;
+
+  // Only show overlay once per tournament instance
+  const tid = tourney.createdAt || w.id;
+  if(!_winnerShown || _currentTournamentId !== tid){
+    _winnerShown = true;
+    _currentTournamentId = tid;
+    showWinnerScreen(w, winnerMatches, totalMatches, players);
+  }
+
+  // Always update finishedCard (visible in bracket tab)
+  fc.innerHTML=`
+    <div style="text-align:center;padding:1.2rem 0 .8rem;">
+      <div style="font-size:44px;margin-bottom:10px;">🏆</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px;">${w.name}</div>
+      <div class="muted small">Campeón del torneo</div>
+      ${isHost ? `<button class="btn" style="background:var(--p1);border-color:var(--p1);color:#fff;width:100%;margin-top:12px;font-size:14px;padding:11px;" onclick="resetTournament()">🔄 Nuevo torneo</button>` : ''}
+    </div>`;
+}
+
+function showWinnerScreen(w, wins, totalMatches, players) {
+  // Remove any existing winner screen
+  document.getElementById('winnerOverlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'winnerOverlay';
+  overlay.className = 'winner-screen';
+
+  // Determine tournament type label
+  const tourneyType = totalMatches > 1 ? `${totalMatches} partidas jugadas` : '1 partida jugada';
+
+  overlay.innerHTML = `
+    <div class="winner-bg-glow"></div>
+    <div class="confetti-wrap" id="confettiWrap"></div>
+    <span class="winner-trophy">🏆</span>
+    <div class="winner-label">Campeón del torneo</div>
+    <div class="winner-name">${w.name}</div>
+    <div class="winner-sub">${tourneyType}</div>
+    <div class="winner-stats">
+      <div class="wstat">
+        <div class="wstat-val">${wins}</div>
+        <div class="wstat-lbl">victorias</div>
+      </div>
+      <div class="wstat">
+        <div class="wstat-val">${totalMatches - wins}</div>
+        <div class="wstat-lbl">derrotas</div>
+      </div>
+      <div class="wstat">
+        <div class="wstat-val">${totalMatches}</div>
+        <div class="wstat-lbl">partidas</div>
+      </div>
+    </div>
+    <div class="winner-actions">
+      ${isHost ? `<button class="btn" style="background:var(--p1);border-color:var(--p1);color:#fff;width:100%;font-size:15px;padding:13px;font-weight:700;"
+        onclick="resetTournament()">🔄 Nuevo torneo</button>` : ''}
+      <button class="btn" style="background:var(--winbg);border-color:var(--winborder);color:var(--win);width:100%;font-size:15px;padding:13px;"
+        onclick="closeWinnerScreen()">Ver bracket →</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  spawnConfetti();
+}
+
+function closeWinnerScreen() {
+  _winnerShown = true; // prevent overlay from reopening on subsequent Firebase updates
+  const overlay = document.getElementById('winnerOverlay');
+  if (overlay) {
+    overlay.style.transition = 'opacity .3s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 320);
+  }
+  goNav('bracket');
+}
+
+async function resetTournament() {
+  // Save current tournament to history before clearing
+  const snap = await roomRef.child('tournament').once('value');
+  const tourney = snap.val();
+  if(tourney && tourney.winner){
+    await roomRef.child('tournament_history').push({
+      winner: tourney.winner,
+      matches: tourney.matches || {},
+      rounds: tourney.rounds || {},
+      type: tourney.type || 'elimination',
+      ts: Date.now(),
+    });
+  }
+  // Reset local flags so next tournament shows overlay fresh
+  _winnerShown = false;
+  _currentTournamentId = null;
+  _lastSeenResultTs = 0;
+  document.getElementById('winnerOverlay')?.remove();
+  await roomRef.update({ tournament: null, status: 'lobby' });
+  document.getElementById('bnav').classList.remove('show');
+  showScreen('sLobby');
+  toast('Listo para un nuevo torneo', 'ok');
+}
+
+function spawnConfetti() {
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+  const colors = ['#4db87a','#5b8ef7','#f75b8e','#e8c547','#a07ef5','#f75b5b'];
+  const count = 55;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('i');
+    el.style.cssText = [
+      `left:${Math.random()*100}%`,
+      `background:${colors[Math.floor(Math.random()*colors.length)]}`,
+      `width:${5+Math.random()*6}px`,
+      `height:${5+Math.random()*6}px`,
+      `border-radius:${Math.random()>.5?'50%':'2px'}`,
+      `animation-name:cFall`,
+      `animation-duration:${2.2+Math.random()*2.5}s`,
+      `animation-delay:${Math.random()*1.4}s`,
+      `animation-fill-mode:both`,
+      `animation-timing-function:linear`,
+      `opacity:0`,
+    ].join(';');
+    wrap.appendChild(el);
+  }
+}
+
+/* ── TOURNAMENT HISTORY ── */
+function renderTournamentHistory(historyMap){
+  const card = document.getElementById('historyCard');
+  const list = document.getElementById('tournamentHistoryList');
+  if(!card || !list) return;
+  const entries = Object.values(historyMap||{}).sort((a,b)=>b.ts-a.ts);
+  if(!entries.length){ card.style.display='none'; return; }
+  card.style.display='';
+  list.innerHTML = entries.map((h, idx) => {
+    const matches = Object.values(h.matches||{}).filter(m=>m.status==='done');
+    const date = h.ts ? new Date(h.ts).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--line);${idx===entries.length-1?'border-bottom:none':''}">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">🏆</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">${h.winner?.name||'—'}</div>
+          <div style="font-size:11px;color:var(--text2);">${h.type==='round_robin'?'Todos vs todos':'Eliminación'} · ${matches.length} partidas · ${date}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── CURRENT MATCH SPECTATOR ── */
+function renderCurrentMatchSpec(tourney,players){
+  const mid=tourney.currentMatchId;
+  const m=mid?tourney.matches?.[mid]:null;
+  const el=document.getElementById('currentMatchSpecContent');
+  if(!m){ el.innerHTML='<div class="muted small">Sin enfrentamiento activo</div>'; return; }
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;padding:8px 0;">
+      <div style="text-align:center;flex:1;">
+        <div class="av av-p1" style="margin:0 auto 4px;">${avLetters(m.p1name)}</div>
+        <div style="font-size:13px;font-weight:700;">${m.p1name}</div>
+        <div style="font-size:22px;font-weight:800;color:var(--p1)">${m.score?.p1||0}</div>
+      </div>
+      <div style="font-size:13px;color:var(--text3);font-weight:700;">vs</div>
+      <div style="text-align:center;flex:1;">
+        <div class="av av-p2" style="margin:0 auto 4px;">${avLetters(m.p2name)}</div>
+        <div style="font-size:13px;font-weight:700;">${m.p2name}</div>
+        <div style="font-size:22px;font-weight:800;color:var(--p2)">${m.score?.p2||0}</div>
+      </div>
+    </div>`;
+}
+
+/* ── LEAVE ── */
+async function leaveRoom(){
+  if(!roomRef) return;
+  if(isHost){
+    if(!confirm('¿Cerrar la sala para todos?')) return;
+    await roomRef.remove();
+  } else {
+    await roomRef.child('players/'+myId).remove();
+  }
+  leaveRoomLocal();
+}
+function leaveRoomLocal(){
+  if(roomRef&&roomListener) roomRef.off('value',roomListener);
+  roomListener=null; roomRef=null; roomCode=''; isHost=false;
+  document.getElementById('hdrRoom').style.display='none';
+  document.getElementById('bnav').classList.remove('show');
+  if(_fromHub) {
+    window.parent.postMessage({ type: 'GAME_CLOSED' }, '*');
+  } else {
+    showScreen('sHome');
+  }
+}
+
+/* ── KEYBOARD ── */
+document.getElementById('nickIn').addEventListener('keydown',e=>{ if(e.key==='Enter') createRoom(); });
+document.getElementById('codeIn').addEventListener('keydown',e=>{ if(e.key==='Enter') joinRoom(); });
+document.getElementById('codeIn').addEventListener('input',e=>{ e.target.value=e.target.value.toUpperCase(); });
+
+/* ── HUB AUTO-BOOTSTRAP ── */
+if(myNick) document.getElementById('nickIn').value = myNick;
+
+if(_fromHub && myNick) {
+  // Hide sHome visually — DOM stays intact so createRoom/joinRoom can read inputs
+  const _sHome = document.getElementById('sHome');
+  _sHome.style.cssText = 'visibility:hidden;pointer-events:none;';
+
+  // Overlay spinner
+  const _sp = document.createElement('div');
+  _sp.id = '_hubSpinner';
+  _sp.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;background:var(--bg);';
+  _sp.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div class="spinner"></div><div style="font-size:13px;font-weight:600;letter-spacing:.02em;opacity:.6;">Preparando sala…</div></div>';
+  document.body.appendChild(_sp);
+
+  const _done = () => {
+    document.getElementById('_hubSpinner')?.remove();
+    _sHome.style.cssText = '';
+  };
+
+  setTimeout(async () => {
+    try {
+      if(_hubCode && _hubCode.length >= 4) {
+        const snap = await db.ref('ppt_rooms/'+_hubCode).once('value');
+        _done();
+        if(snap.exists()) {
+          document.getElementById('codeIn').value = _hubCode;
+          joinRoom();
+        } else {
+          handleRoomNotFound(_hubCode);
+        }
+      } else {
+        _done();
+        createRoom();
+      }
+    } catch(e) { _done(); }
+  }, 300);
+}
+</script>
+</body>
+</html>

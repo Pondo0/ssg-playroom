@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>PlayRoom</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ══ RESET & ROOT ══ */
+:root {
+  --bg:      #0d0e11;
+  --bg2:     #131417;
+  --bg3:     #1b1c21;
+  --bg4:     #23242b;
+  --bg5:     #2c2d36;
+  --line:    rgba(255,255,255,0.055);
+  --line2:   rgba(255,255,255,0.10);
+  --line3:   rgba(255,255,255,0.18);
+  --text:    #f0eee8;
+  --text2:   #7b7987;
+  --text3:   #3f3e4a;
+
+  /* accent */
+  --a1:      #6e8fff;
+  --a1bg:    rgba(110,143,255,0.10);
+  --a1b:     rgba(110,143,255,0.28);
+
+  /* game colors */
+  --ppt:     #ff6b9d;
+  --pptbg:   rgba(255,107,157,0.10);
+  --pptb:    rgba(255,107,157,0.28);
+
+  --dom:     #4ecba0;
+  --dombg:   rgba(78,203,160,0.10);
+  --domb:    rgba(78,203,160,0.28);
+
+  --vdr:     #f5a623;
+  --vdrbg:   rgba(245,166,35,0.10);
+  --vdrb:    rgba(245,166,35,0.28);
+
+  --r:       14px;
+  --rsm:     8px;
+  --rlg:     20px;
+  --rxl:     28px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══ TYPOGRAPHY ══ */
+.display { font-family: 'Syne', sans-serif; }
+.mono    { font-family: 'DM Mono', monospace; }
+
+/* ══ UTILS ══ */
+.hidden { display: none !important; }
+.muted  { color: var(--text2); }
+.small  { font-size: 12px; }
+input, select, button { font-family: 'Space Grotesk', sans-serif; }
+
+/* ══ TOAST ══ */
+#toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--bg4); border: 1px solid var(--line2);
+  border-radius: 999px; padding: 9px 18px;
+  font-size: 13px; font-weight: 600;
+  opacity: 0; transition: all .25s; pointer-events: none;
+  z-index: 999; white-space: nowrap;
+}
+#toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.ok    { background: rgba(78,203,160,.15); border-color: rgba(78,203,160,.35); color: #4ecba0; }
+#toast.err   { background: rgba(240,100,100,.15); border-color: rgba(240,100,100,.35); color: #f06464; }
+
+/* ══ SCREENS ══ */
+.screen { display: none; animation: fadeUp .22s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══ HEADER ══ */
+.hdr {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  background: rgba(13,14,17,.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--line);
+}
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--a1bg); border: 1px solid var(--a1b);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.logo-text { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: -.03em; }
+.logo-text em { color: var(--a1); font-style: normal; }
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.hdr-pill {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  background: var(--a1bg); color: var(--a1);
+  border: 1px solid var(--a1b); padding: 3px 10px;
+  border-radius: 999px; letter-spacing: .08em;
+  display: none;
+}
+.hdr-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  display: none; flex-shrink: 0;
+}
+
+/* ══ APP WRAPPER ══ */
+.app { max-width: 480px; margin: 0 auto; padding: 0 14px 96px; }
+
+/* ══ ONBOARDING ══ */
+#sOnboard {
+  min-height: 100vh; display: none;
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+#sOnboard.active { display: flex; }
+.onboard-card {
+  width: 100%; max-width: 380px;
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--rxl); padding: 32px 28px;
+}
+.onboard-logo {
+  text-align: center; margin-bottom: 28px;
+}
+.onboard-glyph {
+  font-family: 'Syne', sans-serif; font-size: 42px;
+  font-weight: 800; letter-spacing: -.05em;
+  display: block; margin-bottom: 6px;
+}
+.onboard-glyph em { color: var(--a1); font-style: normal; }
+.onboard-sub { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.form-label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 8px;
+}
+.form-input {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: var(--rsm); font-size: 15px;
+  color: var(--text); outline: none;
+  transition: border .15s;
+}
+.form-input:focus { border-color: var(--a1); }
+.color-grid {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.color-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent;
+  transition: all .15s;
+}
+.color-dot.on { border-color: var(--text); transform: scale(1.15); }
+.btn-primary {
+  width: 100%; padding: 13px;
+  background: var(--a1); border: none; border-radius: var(--rsm);
+  font-size: 15px; font-weight: 700; color: #fff;
+  cursor: pointer; letter-spacing: -.01em;
+  transition: filter .15s;
+}
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:active { transform: scale(.97); }
+
+/* ══ HOME ══ */
+.home-greeting {
+  padding: 22px 0 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.greeting-text {
+  font-family: 'Syne', sans-serif; font-size: 22px;
+  font-weight: 800; letter-spacing: -.03em;
+}
+.greeting-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+/* Room entry card */
+.room-card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px;
+  margin-bottom: 12px;
+  display: flex; gap: 8px;
+}
+.room-card input {
+  flex: 1; padding: 10px 13px;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: var(--rsm); font-size: 14px; color: var(--text);
+  outline: none; transition: border .15s;
+}
+.room-card input:focus { border-color: var(--a1); }
+.room-code-in {
+  font-family: 'DM Mono', monospace !important;
+  letter-spacing: .15em; text-transform: uppercase;
+  font-size: 17px !important; text-align: center;
+}
+.btn-join {
+  padding: 10px 16px;
+  background: var(--a1bg); border: 1px solid var(--a1b);
+  border-radius: var(--rsm); font-size: 14px; font-weight: 700;
+  color: var(--a1); cursor: pointer; white-space: nowrap;
+  transition: all .15s;
+}
+.btn-join:hover { background: var(--a1); color: #fff; }
+.btn-join:active { transform: scale(.96); }
+
+/* Section heading */
+.sec-head {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3);
+  margin: 20px 0 10px;
+}
+
+/* ══ GAME CARD ══ */
+.game-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.game-card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px 14px 14px;
+  cursor: pointer; transition: all .18s;
+  position: relative; overflow: hidden;
+  text-decoration: none; display: block;
+}
+.game-card::after {
+  content: ''; position: absolute; inset: 0;
+  opacity: 0; transition: opacity .18s;
+  border-radius: inherit;
+}
+.game-card:hover::after { opacity: 1; }
+.game-card:active { transform: scale(.97); }
+
+.game-card.ppt  { border-color: var(--pptb); }
+.game-card.ppt::after  { background: var(--pptbg); }
+.game-card.dom  { border-color: var(--domb); }
+.game-card.dom::after  { background: var(--dombg); }
+.game-card.vdr  { border-color: rgba(245,166,35,.15); opacity: .5; cursor: default; pointer-events: none; }
+.game-card.vdr:active { transform: none; }
+.game-card.vdr::after  { background: var(--vdrbg); }
+
+.game-icon {
+  font-size: 28px; display: block; margin-bottom: 10px;
+  position: relative; z-index: 1;
+}
+.game-name {
+  font-family: 'Syne', sans-serif; font-size: 14px;
+  font-weight: 800; letter-spacing: -.02em;
+  position: relative; z-index: 1;
+  margin-bottom: 3px;
+}
+.game-desc {
+  font-size: 11px; color: var(--text2); line-height: 1.4;
+  position: relative; z-index: 1;
+}
+.game-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 9px; font-weight: 700; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 999px;
+  text-transform: uppercase; z-index: 1;
+}
+.badge-live { background: var(--dombg); border: 1px solid var(--domb); color: var(--dom); }
+.badge-pronto { background: var(--bg4); border: 1px solid var(--line2); color: var(--text3); }
+
+/* ══ ROOM HISTORY ══ */
+.hist-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.hist-info { flex: 1; }
+.hist-code {
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  font-weight: 500; letter-spacing: .06em; color: var(--a1);
+}
+.hist-meta { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.hist-arrow { color: var(--text3); font-size: 16px; }
+
+/* ══ PROFILE STRIP ══ */
+.profile-strip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); margin-bottom: 10px;
+  cursor: pointer; transition: border-color .15s;
+}
+.profile-strip:hover { border-color: var(--line2); }
+.profile-av {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.profile-name { font-size: 14px; font-weight: 600; }
+.profile-meta { font-size: 11px; color: var(--text2); }
+.profile-edit-btn {
+  margin-left: auto; font-size: 12px; color: var(--text2);
+  background: var(--bg3); border: 1px solid var(--line2);
+  padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  transition: all .15s;
+}
+.profile-edit-btn:hover { color: var(--text); border-color: var(--line3); }
+
+/* ══ MODAL ══ */
+.mwrap {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.7); z-index: 100;
+  align-items: flex-end; justify-content: center;
+}
+.mwrap.open { display: flex; animation: fadeUp .2s ease; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--rlg) var(--rlg) 0 0;
+  width: 100%; max-width: 480px;
+  padding: 20px 18px max(20px,env(safe-area-inset-bottom));
+  max-height: 80vh; overflow-y: auto;
+}
+.mhandle {
+  width: 36px; height: 4px; background: var(--bg4);
+  border-radius: 999px; margin: 0 auto 18px;
+}
+.modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+.btn-modal {
+  width: 100%; padding: 12px; margin-bottom: 8px;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: var(--rsm); font-size: 14px; font-weight: 600;
+  color: var(--text); cursor: pointer; transition: all .15s;
+  text-align: left;
+}
+.btn-modal:hover { background: var(--bg4); }
+.btn-modal.danger { color: #f06464; border-color: rgba(240,100,100,.3); }
+
+/* ══ STATS ROW ══ */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.stat-box {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--rsm); padding: 12px 10px; text-align: center;
+}
+.stat-val {
+  font-family: 'DM Mono', monospace; font-size: 20px;
+  font-weight: 500; margin-bottom: 2px;
+}
+.stat-lbl { font-size: 10px; color: var(--text2); letter-spacing: .06em; text-transform: uppercase; }
+
+/* ══ GAME LAUNCHER (in-hub iframe placeholder) ══ */
+.launcher-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(13,14,17,.96);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line);
+  padding: 10px 14px max(12px,env(safe-area-inset-bottom));
+  display: none; align-items: center; gap: 10px;
+  z-index: 60;
+}
+.launcher-bar.show { display: flex; }
+.launcher-info { flex: 1; }
+.launcher-game { font-size: 13px; font-weight: 700; }
+.launcher-status { font-size: 11px; color: var(--text2); }
+.btn-launch {
+  padding: 9px 16px;
+  background: var(--a1); border: none;
+  border-radius: var(--rsm); font-size: 13px;
+  font-weight: 700; color: #fff; cursor: pointer;
+  transition: filter .15s; flex-shrink: 0;
+}
+.btn-launch:hover { filter: brightness(1.1); }
+.btn-launch:active { transform: scale(.96); }
+.btn-close-game {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer; color: var(--text2);
+  flex-shrink: 0; transition: all .15s;
+}
+.btn-close-game:hover { color: var(--text); }
+
+/* ══ GAME PANEL (full screen game) ══ */
+#gamePanel {
+  position: fixed; inset: 0; z-index: 80;
+  background: var(--bg);
+  display: none; flex-direction: column;
+}
+#gamePanel.open { display: flex; }
+.game-panel-hdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: rgba(13,14,17,.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.btn-back {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; color: var(--text2);
+  flex-shrink: 0; transition: all .15s; text-decoration: none;
+}
+.btn-back:hover { color: var(--text); border-color: var(--line3); }
+.game-panel-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 800; letter-spacing: -.02em;
+}
+.game-panel-code {
+  margin-left: auto; font-family: 'DM Mono', monospace;
+  font-size: 11px; background: var(--a1bg); color: var(--a1);
+  border: 1px solid var(--a1b); padding: 3px 10px;
+  border-radius: 999px; letter-spacing: .08em; display: none;
+}
+#gameFrame {
+  flex: 1; border: none; width: 100%;
+  background: var(--bg);
+}
+
+/* ══ CONNECTING STATE ══ */
+.connecting-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; gap: 14px; color: var(--text2);
+  font-size: 14px; padding: 40px;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 2px solid var(--line2);
+  border-top-color: var(--a1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══ BOTTOM NAV ══ */
+.bnav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(13,14,17,.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  display: none; justify-content: space-around;
+  padding: 8px 0 max(10px,env(safe-area-inset-bottom));
+  z-index: 55;
+}
+.bnav.show { display: flex; }
+.nitem {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 4px 16px; cursor: pointer;
+  color: var(--text3); font-size: 10px; font-weight: 600;
+  letter-spacing: .04em; border: none; background: transparent;
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase; transition: color .15s;
+}
+.nitem.on { color: var(--a1); }
+.ni { font-size: 20px; }
+
+/* ══ DIVIDER ══ */
+hr.sep { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+
+/* ══ INLINE CARDS ══ */
+.card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px;
+}
+.lbl {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+}
+
+/* ══ GAME BADGE STATES ══ */
+.game-badge.badge-current {
+  background: rgba(78,203,160,.15);
+  border: 1px solid rgba(78,203,160,.35);
+  color: #4ecba0;
+}
+.game-badge.badge-compat {
+  background: rgba(232,197,71,.15);
+  border: 1px solid rgba(232,197,71,.35);
+  color: #e8c547;
+  cursor: pointer;
+}
+.game-badge.badge-updating {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: var(--text3);
+  animation: badgePulse 1.4s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .35; }
+}
+
+/* ══ INSTALLED GAMES (Settings) ══ */
+.game-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.game-row:last-child { border-bottom: none; }
+.game-row-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.game-row-info { flex: 1; min-width: 0; }
+.game-row-name { font-size: 13px; font-weight: 600; }
+.game-row-meta { font-size: 11px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+.btn-update {
+  padding: 6px 12px;
+  border-radius: var(--rsm); font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 1px solid; transition: all .15s;
+  flex-shrink: 0; font-family: 'Space Grotesk', sans-serif;
+  white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-update.available {
+  background: var(--a1bg); border-color: var(--a1b); color: var(--a1);
+}
+.btn-update.available:hover { background: var(--a1); color: #fff; }
+.btn-update.current {
+  background: transparent; border-color: transparent;
+  color: var(--text3); cursor: default; pointer-events: none;
+}
+.btn-update.loading {
+  background: var(--bg3); border-color: var(--line2);
+  color: var(--text2); pointer-events: none;
+}
+.btn-update .mini-spinner {
+  width: 12px; height: 12px;
+  border: 1.5px solid var(--line2); border-top-color: var(--a1);
+  border-radius: 50%; animation: spin 1s linear infinite;
+  display: inline-block; flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ══════════ ONBOARDING ══════════ -->
+<div id="sOnboard" class="screen">
+  <div class="onboard-card">
+    <div class="onboard-logo">
+      <span class="onboard-glyph">Play<em>Room</em></span>
+      <p class="onboard-sub">La plataforma de juegos presenciales.<br>Piedra Papel Tijera, Dominó y más.</p>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Tu nombre</label>
+      <input type="text" class="form-input" id="nameIn" placeholder="¿Cómo te llamas?" maxlength="20" style="margin-bottom:14px;"/>
+      <label class="form-label">Color de avatar</label>
+      <div class="color-grid" id="colorGrid"></div>
+    </div>
+    <button class="btn-primary" onclick="saveProfile()">Entrar a PlayRoom →</button>
+  </div>
+</div>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="hdr hidden" id="mainHdr">
+  <div class="logo-mark">🎮</div>
+  <span class="logo-text">Play<em>Room</em></span>
+  <div class="hdr-right">
+    <div class="hdr-pill hidden" id="hdrRoom"></div>
+    <div class="hdr-avatar hidden" id="hdrAvatar" onclick="openModal('profileModal')"></div>
+  </div>
+</header>
+
+<!-- ══════════ SCREENS ══════════ -->
+<div class="app">
+
+  <!-- ── HOME ── -->
+  <div id="sHome" class="screen">
+    <div class="home-greeting">
+      <div>
+        <div class="greeting-text display" id="greetName">Hola 👋</div>
+        <div class="greeting-sub" id="greetSub">¿Qué jugamos hoy?</div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-box">
+        <div class="stat-val mono" id="statGames">0</div>
+        <div class="stat-lbl">Partidas</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val mono" id="statWins">0</div>
+        <div class="stat-lbl">Victorias</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val mono" id="statLast">—</div>
+        <div class="stat-lbl">Último</div>
+      </div>
+    </div>
+
+    <!-- Join room card -->
+    <div class="room-card">
+      <input type="text" id="codeInHome" class="room-code-in" placeholder="Código de sala" maxlength="6"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter') joinFromHome()"/>
+      <button class="btn-join" onclick="joinFromHome()">Unirse →</button>
+    </div>
+
+    <!-- Games -->
+    <div class="sec-head">Juegos</div>
+    <div class="game-grid">
+      <div class="game-card ppt" onclick="launchGame('ppt')">
+        <span class="game-icon">✊</span>
+        <div class="game-name">PPT</div>
+        <div class="game-desc">Torneos rápidos · 2–16 jugadores</div>
+        <span class="game-badge badge-updating" id="badge-ppt" title="">↑ Actualizando</span>
+      </div>
+      <div class="game-card dom" onclick="launchGame('domino')">
+        <span class="game-icon"><svg width="22" height="36" viewBox="0 0 44 72" style="display:inline-block;vertical-align:middle;"><rect x="1" y="1" width="42" height="70" rx="6" fill="#f0eee8" stroke="#bbb" stroke-width="1.5"/><line x1="5" y1="36" x2="39" y2="36" stroke="#bbb" stroke-width="1.2"/><circle cx="22" cy="19" r="5" fill="#1a1a1f"/><circle cx="14" cy="46" r="5" fill="#1a1a1f"/><circle cx="30" cy="60" r="5" fill="#1a1a1f"/></svg></span>
+        <div class="game-name">Dominó</div>
+        <div class="game-desc">Mesas simultáneas · torneo</div>
+        <span class="game-badge badge-updating" id="badge-domino" title="">↑ Actualizando</span>
+      </div>
+      <div class="game-card vdr">
+        <span class="game-icon">🎴</span>
+        <div class="game-name">Verdad o Reto</div>
+        <div class="game-desc">Próximamente</div>
+        <span class="game-badge badge-pronto">Pronto</span>
+      </div>
+      <div class="game-card" style="border-style:dashed;cursor:default;pointer-events:none;opacity:.35;">
+        <span class="game-icon">＋</span>
+        <div class="game-name">Próximo</div>
+        <div class="game-desc">En desarrollo</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="sec-head">Salas recientes</div>
+    <div class="card" id="histCard">
+      <div id="histList"></div>
+    </div>
+
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div id="sSettings" class="screen">
+    <div style="padding: 20px 0 10px;">
+      <div class="display" style="font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;">Perfil</div>
+      <div class="muted small">Tu identidad en PlayRoom</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Nombre</div>
+      <input type="text" class="form-input" id="editName" maxlength="20" style="margin-bottom:12px;"/>
+      <div class="lbl">Color de avatar</div>
+      <div class="color-grid" id="editColorGrid" style="margin-bottom:0;"></div>
+    </div>
+    <button class="btn-primary" style="margin-bottom:10px;" onclick="updateProfile()">Guardar cambios</button>
+    <hr class="sep"/>
+    <div class="sec-head">Datos</div>
+    <div class="card">
+      <button class="btn-modal" onclick="clearHistory()">🗑 Borrar historial de salas</button>
+      <button class="btn-modal danger" onclick="resetProfile()">⚠ Borrar perfil y empezar de nuevo</button>
+    </div>
+    <hr class="sep"/>
+    <div class="sec-head">Juegos instalados</div>
+    <div class="card" id="installedGamesCard" style="padding:0;overflow:hidden;margin-bottom:8px;">
+      <div class="small muted" style="padding:14px 16px;">Cargando…</div>
+    </div>
+    <button class="btn-modal" id="updateAllBtn" onclick="updateAllGames()" style="margin-bottom:4px;">↑ Actualizar todos</button>
+    <hr class="sep"/>
+    <div class="card" style="opacity:.5;">
+      <div class="lbl">Versión</div>
+      <span class="mono small" style="color:var(--text2);">PlayRoom Hub v1.0 · Mayo 2026</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GAME PANEL (full-screen) ══════════ -->
+<div id="gamePanel">
+  <div class="game-panel-hdr">
+    <button class="btn-back" onclick="closeGame()" id="backBtn">←</button>
+    <div>
+      <div class="game-panel-name" id="gamePanelName">Juego</div>
+    </div>
+    <div class="game-panel-code" id="gamePanelCode"></div>
+  </div>
+  <div id="gameFrameWrap" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <iframe id="gameFrame" allowfullscreen></iframe>
+  </div>
+</div>
+
+<!-- ══════════ BOTTOM NAV ══════════ -->
+<nav class="bnav hidden" id="bnav">
+  <button class="nitem on" id="nHome" onclick="goNav('home')">
+    <span class="ni">🏠</span>Inicio
+  </button>
+  <button class="nitem" id="nSettings" onclick="goNav('settings')">
+    <span class="ni">👤</span>Perfil
+  </button>
+</nav>
+
+<!-- ══════════ MODALS ══════════ -->
+<div class="mwrap" id="profileModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3 id="profileModalName">Tu perfil</h3>
+    <div id="profileModalStats" style="margin-bottom:14px;"></div>
+    <button class="btn-modal" onclick="closeModal('profileModal');goNav('settings')">✏ Editar perfil</button>
+    <button class="btn-modal" onclick="closeModal('profileModal')">Cerrar</button>
+  </div>
+</div>
+
+<div class="mwrap" id="launchModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div id="launchModalInner"></div>
+  </div>
+</div>
+
+<script>
+/* ══ GAME REGISTRY ══ */
+const GAME_REGISTRY = {
+  ppt: {
+    id: 'ppt', name: 'Piedra Papel Tijera', icon: '✊',
+    desc: 'Torneos rápidos · Al mejor de N · 2–16 jugadores',
+    url: 'playroom-ppt.html',
+    color: 'var(--ppt)', bg: 'var(--pptbg)', border: 'var(--pptb)',
+    minPlayers: 2, maxPlayers: 16,
+  },
+  domino: {
+    id: 'domino', name: 'Dominó', icon: '<svg width="16" height="26" viewBox="0 0 44 72" style="display:inline-block;vertical-align:middle;"><rect x="1" y="1" width="42" height="70" rx="6" fill="#f0eee8" stroke="#bbb" stroke-width="1.5"/><line x1="5" y1="36" x2="39" y2="36" stroke="#bbb" stroke-width="1.2"/><circle cx="22" cy="19" r="5" fill="#1a1a1f"/><circle cx="14" cy="46" r="5" fill="#1a1a1f"/><circle cx="30" cy="60" r="5" fill="#1a1a1f"/></svg>',
+    desc: 'Torneo de dominó · Mesas simultáneas',
+    url: 'playroom-domino.html',
+    color: 'var(--dom)', bg: 'var(--dombg)', border: 'var(--domb)',
+    minPlayers: 4, maxPlayers: 32,
+  },
+};
+
+const AV_COLORS = [
+  { id: 'blue',    hex: '#4e8fff', bg: 'rgba(78,143,255,.18)' },
+  { id: 'pink',    hex: '#ff6b9d', bg: 'rgba(255,107,157,.18)' },
+  { id: 'teal',    hex: '#4ecba0', bg: 'rgba(78,203,160,.18)' },
+  { id: 'amber',   hex: '#f5a623', bg: 'rgba(245,166,35,.18)' },
+  { id: 'purple',  hex: '#a07ef5', bg: 'rgba(160,126,245,.18)' },
+  { id: 'coral',   hex: '#f06464', bg: 'rgba(240,100,100,.18)' },
+];
+
+/* ══ STATE ══ */
+let profile = null;   // { id, name, colorId, createdAt }
+let stats   = null;   // { gamesPlayed, wins, losses, lastGame }
+let history = [];     // [{ code, game, date, myName }]
+let activeGame = null; // { id, url }
+const _remoteVersions = {}; // gameId → latestVersion, populated by checkAllGameVersions
+
+/* ══ UTILS ══ */
+let toastTimer;
+function toast(msg, type = '') {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show ' + type;
+  toastTimer = setTimeout(() => el.className = 'toast', 2600);
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+function showScreen(id) {
+  document.querySelectorAll('.app .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+}
+function avColor(colorId) { return AV_COLORS.find(c => c.id === colorId) || AV_COLORS[0]; }
+function avLetters(name)  { return (name || '??').slice(0, 2).toUpperCase(); }
+
+/* ══ PROFILE ══ */
+function loadProfile() {
+  const raw = localStorage.getItem('pr_profile');
+  if (raw) {
+    try { profile = JSON.parse(raw); } catch(e) { profile = null; }
+  }
+  const rawStats = localStorage.getItem('pr_stats');
+  if (rawStats) {
+    try { stats = JSON.parse(rawStats); } catch(e) { stats = null; }
+  }
+  stats = stats || { gamesPlayed: 0, wins: 0, losses: 0, lastGame: null };
+
+  const rawHist = localStorage.getItem('pr_room_history');
+  if (rawHist) {
+    try { history = JSON.parse(rawHist); } catch(e) { history = []; }
+  }
+  history = history || [];
+}
+
+function saveProfile() {
+  const name = document.getElementById('nameIn').value.trim();
+  if (!name) { toast('Escribe tu nombre', 'err'); return; }
+  const colorId = document.querySelector('#colorGrid .color-dot.on')?.dataset.color || 'blue';
+  profile = {
+    id: 'u' + Math.random().toString(36).slice(2, 9),
+    name, colorId,
+    createdAt: Date.now(),
+  };
+  localStorage.setItem('pr_profile', JSON.stringify(profile));
+  enterApp();
+}
+
+function updateProfile() {
+  const name = document.getElementById('editName').value.trim();
+  if (!name) { toast('El nombre no puede estar vacío', 'err'); return; }
+  const colorId = document.querySelector('#editColorGrid .color-dot.on')?.dataset.color || profile.colorId;
+  profile.name = name; profile.colorId = colorId;
+  localStorage.setItem('pr_profile', JSON.stringify(profile));
+  renderHeader(); renderHome();
+  toast('Perfil actualizado ✓', 'ok');
+}
+
+function clearHistory() {
+  if (!confirm('¿Borrar el historial de salas?')) return;
+  history = [];
+  localStorage.removeItem('pr_room_history');
+  renderHome();
+  toast('Historial borrado');
+}
+
+function resetProfile() {
+  if (!confirm('¿Borrar todo y empezar de nuevo?')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+/* ══ COLOR PICKER ══ */
+function buildColorGrid(gridId, selectedId) {
+  const el = document.getElementById(gridId);
+  if (!el) return;
+  el.innerHTML = AV_COLORS.map(c => `
+    <div class="color-dot ${c.id === selectedId ? 'on' : ''}"
+      style="background:${c.hex};" data-color="${c.id}"
+      onclick="selectColor('${gridId}','${c.id}',this)"></div>
+  `).join('');
+}
+
+function selectColor(gridId, colorId, el) {
+  document.querySelectorAll('#' + gridId + ' .color-dot').forEach(d => d.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ══ ENTER APP ══ */
+function enterApp() {
+  document.getElementById('sOnboard').classList.remove('active');
+  show('mainHdr');
+  show('bnav');
+  document.getElementById('bnav').classList.add('show');
+  renderHeader();
+  renderHome();
+  showScreen('sHome');
+  // Silently validate + update game versions in background
+  checkAllGameVersions();
+}
+
+function renderHeader() {
+  const av = document.getElementById('hdrAvatar');
+  if (!av || !profile) return;
+  const col = avColor(profile.colorId);
+  av.style.background = col.bg;
+  av.style.color = col.hex;
+  av.textContent = avLetters(profile.name);
+  av.style.display = 'flex';
+
+  // Profile modal
+  document.getElementById('profileModalName').textContent = profile.name;
+  document.getElementById('profileModalStats').innerHTML =
+    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+      ${[['Partidas', stats.gamesPlayed], ['Victorias', stats.wins], ['Salas', history.length]].map(([l,v]) =>
+        `<div class="stat-box"><div class="stat-val mono">${v}</div><div class="stat-lbl">${l}</div></div>`
+      ).join('')}
+    </div>`;
+}
+
+function renderHome() {
+  if (!profile) return;
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
+  document.getElementById('greetName').textContent = greet + ', ' + profile.name.split(' ')[0] + ' 👋';
+
+  // Stats
+  document.getElementById('statGames').textContent = stats.gamesPlayed;
+  document.getElementById('statWins').textContent = stats.wins;
+  document.getElementById('statLast').textContent = stats.lastGame
+    ? GAME_REGISTRY[stats.lastGame]?.icon || '?'
+    : '—';
+
+  // History
+  renderHistory();
+
+  // Settings screen prefill
+  document.getElementById('editName').value = profile.name;
+  buildColorGrid('editColorGrid', profile.colorId);
+}
+
+function renderHistory() {
+  const el = document.getElementById('histList');
+  if (!el) return;
+  const recent = [...history].reverse().slice(0, 5);
+  if (!recent.length) {
+    el.innerHTML = '<div class="muted small" style="padding:4px 0;">Aún no has jugado ninguna sala.</div>';
+    return;
+  }
+  el.innerHTML = recent.map(h => {
+    const g = GAME_REGISTRY[h.game];
+    const date = h.date ? new Date(h.date).toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '—';
+    return `<div class="hist-row" onclick="rejoinRoom('${h.code}','${h.game}')">
+      <div class="hist-icon" style="background:${g?.bg||'var(--bg3)'};border:1px solid ${g?.border||'var(--line)'};">${g?.icon||'🎮'}</div>
+      <div class="hist-info">
+        <div class="hist-code">${h.code}</div>
+        <div class="hist-meta">${g?.name||h.game} · ${date}</div>
+      </div>
+      <div class="hist-arrow">→</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ NAV ══ */
+function goNav(tab) {
+  const map = { home: 'sHome', settings: 'sSettings' };
+  showScreen(map[tab] || 'sHome');
+  document.querySelectorAll('.nitem').forEach(n => n.classList.remove('on'));
+  const key = 'n' + tab.charAt(0).toUpperCase() + tab.slice(1);
+  document.getElementById(key)?.classList.add('on');
+  if (tab === 'settings') renderInstalledGames();
+}
+
+/* ══ GAME LAUNCH ══ */
+function launchGame(gameId) {
+  const g = GAME_REGISTRY[gameId];
+  if (!g) return;
+
+  document.getElementById('launchModalInner').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:${g.bg};border:1px solid ${g.border};
+        display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${g.icon}</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.02em;margin-bottom:2px;">${g.name}</div>
+        <div class="small muted">${g.desc}</div>
+      </div>
+    </div>
+    <button class="btn-modal" style="background:${g.bg};border-color:${g.border};color:${g.color};"
+      onclick="openGame('${gameId}','create')">
+      <span style="font-size:15px;">＋</span>&nbsp; Crear nueva sala
+    </button>
+    <button class="btn-modal" onclick="showJoinPanel('${gameId}')">
+      <span style="font-size:15px;">→</span>&nbsp; Unirse con código
+    </button>
+    <div id="joinPanelIn" class="hidden" style="margin-top:8px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" class="form-input room-code-in" id="modalCodeIn" placeholder="Código" maxlength="6"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter') openGame('${gameId}','join')"
+          style="flex:1;font-size:18px;letter-spacing:.15em;"/>
+        <button class="btn-join" onclick="openGame('${gameId}','join')">→</button>
+      </div>
+    </div>
+    <button class="btn-modal btn-ghost" onclick="closeModal('launchModal')" style="margin-top:4px;color:var(--text2);">Cancelar</button>`;
+
+  openModal('launchModal');
+}
+
+function showJoinPanel(gameId) {
+  document.getElementById('joinPanelIn')?.classList.remove('hidden');
+  document.getElementById('modalCodeIn')?.focus();
+}
+
+function openGame(gameId, mode) {
+  const g = GAME_REGISTRY[gameId];
+  if (!g) return;
+
+  let code = '';
+  if (mode === 'join') {
+    code = (document.getElementById('modalCodeIn')?.value || '').trim().toUpperCase();
+    if (code.length < 4) { toast('Código inválido', 'err'); return; }
+  }
+
+  closeModal('launchModal');
+  activeGame = { id: gameId, url: g.url, mode, code };
+
+  const params = { hub: '1' };
+  if (profile?.name) params.nick = profile.name;
+  if (mode === 'join' && code) params.code = code;
+
+  if (mode === 'join' && code) addHistory(code, gameId);
+
+  document.getElementById('gamePanelName').textContent = g.name;
+  document.getElementById('gamePanelCode').style.display = 'none';
+  document.getElementById('gamePanel').classList.add('open');
+
+  // Load from cache if available, else direct URL
+  const cached = getCachedGame(gameId);
+  if (cached?.html) {
+    loadGameFromCache(gameId, cached, params);
+  } else {
+    const qs = new URLSearchParams(params).toString();
+    document.getElementById('gameFrame').src = g.url + '?' + qs;
+    // Download in background for next time
+    fetchAndCacheGame(gameId);
+  }
+}
+
+function rejoinRoom(code, gameId) {
+  const g = GAME_REGISTRY[gameId];
+  if (!g) return;
+  activeGame = { id: gameId, url: g.url, mode: 'join', code };
+  const params = { hub: '1', code };
+  if (profile?.name) params.nick = profile.name;
+  document.getElementById('gamePanelName').textContent = g.name;
+  document.getElementById('gamePanelCode').textContent = code;
+  document.getElementById('gamePanelCode').style.display = '';
+  document.getElementById('gamePanel').classList.add('open');
+  addHistory(code, gameId);
+
+  const cached = getCachedGame(gameId);
+  if (cached?.html) {
+    loadGameFromCache(gameId, cached, params);
+  } else {
+    const qs = new URLSearchParams(params).toString();
+    document.getElementById('gameFrame').src = g.url + '?' + qs;
+    fetchAndCacheGame(gameId);
+  }
+}
+
+function joinFromHome() {
+  const code = (document.getElementById('codeInHome')?.value || '').trim().toUpperCase();
+  if (code.length < 4) { toast('Ingresa un código de sala', 'err'); return; }
+  // Try to detect game from history
+  const hist = [...history].reverse().find(h => h.code === code);
+  const gameId = hist?.game || 'ppt'; // default to ppt
+  rejoinRoom(code, gameId);
+}
+
+function closeGame() {
+  document.getElementById('gamePanel').classList.remove('close');
+  document.getElementById('gamePanel').classList.remove('open');
+  document.getElementById('gameFrame').src = '';
+  activeGame = null;
+
+  // Update stats from localStorage in case game wrote them
+  loadProfile();
+  renderHeader();
+  renderHome();
+}
+
+/* ══ HISTORY ══ */
+function addHistory(code, gameId) {
+  history = history.filter(h => h.code !== code);
+  history.push({ code, game: gameId, date: Date.now(), myName: profile?.name || '' });
+  if (history.length > 20) history = history.slice(-20);
+  localStorage.setItem('pr_room_history', JSON.stringify(history));
+  stats.lastGame = gameId;
+  localStorage.setItem('pr_stats', JSON.stringify(stats));
+}
+
+/* ══ ONBOARDING COLOR GRID ══ */
+function initOnboard() {
+  buildColorGrid('colorGrid', 'blue');
+  document.getElementById('nameIn').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveProfile();
+  });
+}
+
+/* ══ BOOT ══ */
+function boot() {
+  loadProfile();
+  initOnboard();
+  if (profile) {
+    enterApp();
+  } else {
+    document.getElementById('sOnboard').classList.add('active');
+  }
+}
+
+boot();
+
+/* ══ GAME CACHE ══ */
+
+function loadGameFromCache(gameId, cached, params) {
+  // Build the query string the game expects
+  const qs = Object.keys(params).map(k =>
+    encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
+  ).join('&');
+
+  // Patch strategy: inject a script that runs before any game code and uses
+  // history.replaceState to set the correct search string on the Blob URL.
+  // history.replaceState IS available inside iframe Blob documents and actually
+  // mutates window.location.search, so new URLSearchParams(window.location.search)
+  // will return the correct values when the game's own code runs.
+  const paramScript = `<script>
+    (function(){
+      try {
+        history.replaceState(null, '', '?' + '${qs}');
+      } catch(e) {
+        // Fallback: patch URLSearchParams constructor so it always returns hub params
+        var _orig = window.URLSearchParams;
+        window.URLSearchParams = function(init) {
+          if (!init || init === '' || init === '?') {
+            return new _orig('${qs}');
+          }
+          return new _orig(init);
+        };
+        window.URLSearchParams.prototype = _orig.prototype;
+      }
+    })();
+  <\/script>`;
+  const patched = cached.html.replace('<head>', '<head>' + paramScript);
+  const blob = new Blob([patched], { type: 'text/html' });
+  const blobUrl = URL.createObjectURL(blob);
+  document.getElementById('gameFrame').src = blobUrl;
+}
+
+function getCachedGame(gameId) {
+  try {
+    const raw = localStorage.getItem('pr_game_cache_' + gameId);
+    if (!raw) return null;
+    return JSON.parse(raw); // { html, version, major, fetchedAt }
+  } catch(e) { return null; }
+}
+
+async function fetchAndCacheGame(gameId) {
+  const g = GAME_REGISTRY[gameId];
+  if (!g) return null;
+  try {
+    const res = await fetch(g.url + '?_=' + Date.now()); // cache-bust
+    if (!res.ok) throw new Error('fetch failed');
+    const html = await res.text();
+    const vMatch  = html.match(/const GAME_VERSION\s*=\s*['"]([^'"]+)['"]/);
+    const mMatch  = html.match(/const GAME_MAJOR\s*=\s*['"]([^'"]+)['"]/);
+    const version = vMatch ? vMatch[1] : '0.0';
+    const major   = mMatch ? mMatch[1] : '0';
+    const entry   = { html, version, major, fetchedAt: Date.now() };
+    localStorage.setItem('pr_game_cache_' + gameId, JSON.stringify(entry));
+    return entry;
+  } catch(e) {
+    console.warn('[PlayRoom] No se pudo descargar ' + gameId, e);
+    return null;
+  }
+}
+
+/* ══ VERSION CHECK ══ */
+
+/* ══ GAME BADGE ══ */
+
+/**
+ * Computa el estado del badge comparando cache local vs info remota.
+ * Función pura — sin side effects.
+ * @param {string} gameId
+ * @param {object|null} remoteGame  — { latestVersion, majorVersion } o null si offline
+ * @returns {{ state: 'current'|'compat'|'updating', localVersion: string|null, remoteVersion: string|null }}
+ */
+function getGameBadgeState(gameId, remoteGame) {
+  const cached = getCachedGame(gameId);
+
+  // Sin cache → descargando
+  if (!cached) {
+    return { state: 'updating', localVersion: null, remoteVersion: remoteGame?.latestVersion || null };
+  }
+
+  // Sin info remota (offline) → mostrar versión local como current
+  if (!remoteGame) {
+    return { state: 'current', localVersion: cached.version, remoteVersion: null };
+  }
+
+  if (cached.version === remoteGame.latestVersion) {
+    return { state: 'current', localVersion: cached.version, remoteVersion: remoteGame.latestVersion };
+  }
+
+  if (cached.major === remoteGame.majorVersion) {
+    // Mismo major, minor distinto → compatible pero no última versión
+    return { state: 'compat', localVersion: cached.version, remoteVersion: remoteGame.latestVersion };
+  }
+
+  // Major distinto → descargando nueva versión incompatible
+  return { state: 'updating', localVersion: cached.version, remoteVersion: remoteGame.latestVersion };
+}
+
+/**
+ * Aplica visualmente el estado del badge en la game card.
+ * @param {string} gameId
+ * @param {{ state, localVersion, remoteVersion }} badgeInfo
+ */
+function applyGameBadge(gameId, badgeInfo) {
+  const el = document.getElementById('badge-' + gameId);
+  if (!el) return;
+
+  const { state, localVersion, remoteVersion } = badgeInfo;
+  el.className = 'game-badge badge-' + state;
+
+  if (state === 'current') {
+    el.textContent = '✓ v' + localVersion;
+    el.title = '';
+    el.onclick = null;
+  } else if (state === 'compat') {
+    el.textContent = '⚠ v' + localVersion;
+    el.title = `Tienes v${localVersion}, última versión v${remoteVersion} — toca para actualizar`;
+    el.onclick = (e) => {
+      e.stopPropagation();
+      triggerManualUpdate(gameId, localVersion, remoteVersion);
+    };
+  } else {
+    // updating
+    el.textContent = '↑ Actualizando';
+    el.title = '';
+    el.onclick = null;
+  }
+}
+
+/**
+ * Inicia actualización manual desde el badge compat.
+ */
+async function triggerManualUpdate(gameId, localVersion, remoteVersion) {
+  const el = document.getElementById('badge-' + gameId);
+  if (el) {
+    el.className = 'game-badge badge-updating';
+    el.textContent = '↑ Actualizando';
+    el.onclick = null;
+    el.title = '';
+  }
+  toast('Actualizando ' + (GAME_REGISTRY[gameId]?.name || gameId) + '…');
+  const result = await fetchAndCacheGame(gameId);
+  if (result) {
+    toast('Actualización completada ✓', 'ok');
+    applyGameBadge(gameId, { state: 'current', localVersion: result.version, remoteVersion: result.version });
+  } else {
+    // Revertir a compat si falló la descarga
+    if (el) {
+      el.className = 'game-badge badge-compat';
+      el.textContent = '⚠ v' + localVersion;
+      el.title = `Tienes v${localVersion}, última versión v${remoteVersion} — toca para actualizar`;
+    }
+    toast('No se pudo actualizar (sin conexión)', 'err');
+  }
+}
+
+/* ══ VERSION CHECK ══ */
+
+async function checkAllGameVersions() {
+  const gameIds = Object.keys(GAME_REGISTRY);
+
+  // Paso 1: mostrar estado provisional desde cache local mientras llega remoto
+  gameIds.forEach(gameId => {
+    const cached = getCachedGame(gameId);
+    if (!cached) {
+      applyGameBadge(gameId, { state: 'updating', localVersion: null, remoteVersion: null });
+    } else {
+      // Versión local como current hasta confirmar con remoto
+      applyGameBadge(gameId, { state: 'current', localVersion: cached.version, remoteVersion: cached.version });
+    }
+  });
+
+  // Paso 2: comparar contra remoto y ajustar badges
+  try {
+    const res = await fetch('/config/games.json?_=' + Date.now());
+    if (!res.ok) throw new Error('fetch failed');
+    const remote = await res.json();
+
+    await Promise.all(gameIds.map(async (gameId) => {
+      const remoteGame = remote[gameId];
+      if (remoteGame?.latestVersion) _remoteVersions[gameId] = remoteGame.latestVersion;
+      const cached = getCachedGame(gameId);
+
+      if (!cached) {
+        // Sin cache → descargar y mostrar current al terminar
+        console.log('[PlayRoom] No cache for ' + gameId + ' — downloading');
+        applyGameBadge(gameId, { state: 'updating', localVersion: null, remoteVersion: remoteGame?.latestVersion || null });
+        const result = await fetchAndCacheGame(gameId);
+        if (result) {
+          applyGameBadge(gameId, { state: 'current', localVersion: result.version, remoteVersion: remoteGame?.latestVersion || result.version });
+        }
+        renderInstalledGames();
+        return;
+      }
+
+      if (!remoteGame) {
+        // Juego no está en el manifiesto remoto → mantener current con versión local
+        applyGameBadge(gameId, { state: 'current', localVersion: cached.version, remoteVersion: null });
+        return;
+      }
+
+      const badgeInfo = getGameBadgeState(gameId, remoteGame);
+      applyGameBadge(gameId, badgeInfo);
+      renderInstalledGames();
+
+      if (badgeInfo.state === 'updating') {
+        // Major mismatch → descargar en background y actualizar badge al terminar
+        console.log('[PlayRoom] Major version mismatch for ' + gameId +
+          ' (local: ' + cached.major + ', remote: ' + remoteGame.majorVersion + ') — updating silently');
+        const result = await fetchAndCacheGame(gameId);
+        if (result) {
+          applyGameBadge(gameId, { state: 'current', localVersion: result.version, remoteVersion: remoteGame.latestVersion });
+          renderInstalledGames();
+        }
+      }
+    }));
+
+  } catch(e) {
+    // Offline o error de red → mostrar versión local como current (o mantener updating si no hay cache)
+    console.warn('[PlayRoom] Version check skipped (offline or error)', e);
+    gameIds.forEach(gameId => {
+      const cached = getCachedGame(gameId);
+      if (cached) {
+        applyGameBadge(gameId, { state: 'current', localVersion: cached.version, remoteVersion: null });
+      }
+      // Sin cache: permanece en 'updating' — no hay nada que mostrar
+    });
+  }
+}
+
+/* ══ INSTALLED GAMES PANEL ══ */
+
+function renderInstalledGames() {
+  const el = document.getElementById('installedGamesCard');
+  if (!el) return;
+  const gameIds = Object.keys(GAME_REGISTRY);
+  el.innerHTML = gameIds.map(gameId => {
+    const g = GAME_REGISTRY[gameId];
+    const cached = getCachedGame(gameId);
+    const localV   = cached?.version || null;
+    const remoteV  = _remoteVersions[gameId] || null;
+    const fetchedAt = cached?.fetchedAt
+      ? new Date(cached.fetchedAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })
+      : null;
+    const hasUpdate = localV && remoteV && localV !== remoteV;
+    const btnClass = !localV ? 'loading' : hasUpdate ? 'available' : 'current';
+    const btnLabel = !localV
+      ? '<span class="mini-spinner"></span> Descargando'
+      : hasUpdate ? '↑ Actualizar' : '✓ Al día';
+    let metaLine;
+    if (!localV) {
+      metaLine = 'Descargando…';
+    } else if (hasUpdate) {
+      metaLine = `v${localV} instalada · v${remoteV} disponible`;
+    } else {
+      metaLine = `v${localV}${fetchedAt ? ' · descargado ' + fetchedAt : ''}`;
+    }
+    const iconHtml = g.icon.startsWith('<') ? g.icon : g.icon;
+    return `<div class="game-row" id="game-row-${gameId}">
+      <div class="game-row-icon" style="background:${g.bg};border:1px solid ${g.border};">${iconHtml}</div>
+      <div class="game-row-info">
+        <div class="game-row-name">${g.name}</div>
+        <div class="game-row-meta" id="gmeta-${gameId}">${metaLine}</div>
+      </div>
+      <button class="btn-update ${btnClass}" id="gbtn-${gameId}"
+        onclick="updateSingleGame('${gameId}')">${btnLabel}</button>
+    </div>`;
+  }).join('');
+}
+
+async function updateSingleGame(gameId) {
+  const btn  = document.getElementById('gbtn-' + gameId);
+  const meta = document.getElementById('gmeta-' + gameId);
+  if (btn) {
+    btn.className = 'btn-update loading';
+    btn.innerHTML = '<span class="mini-spinner"></span> Actualizando';
+  }
+  const result = await fetchAndCacheGame(gameId);
+  if (result) {
+    if (_remoteVersions[gameId]) {
+      // already have remote info — update it
+      _remoteVersions[gameId] = result.version;
+    }
+    const fetchedAt = new Date(result.fetchedAt || Date.now())
+      .toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (meta) meta.textContent = `v${result.version} · descargado ${fetchedAt}`;
+    if (btn)  { btn.className = 'btn-update current'; btn.textContent = '✓ Al día'; }
+    applyGameBadge(gameId, { state: 'current', localVersion: result.version, remoteVersion: result.version });
+    toast((GAME_REGISTRY[gameId]?.name || gameId) + ' actualizado ✓', 'ok');
+  } else {
+    // Restore previous state
+    const cached   = getCachedGame(gameId);
+    const localV   = cached?.version || null;
+    const remoteV  = _remoteVersions[gameId] || null;
+    const hasUpdate = localV && remoteV && localV !== remoteV;
+    if (btn) {
+      btn.className = hasUpdate ? 'btn-update available' : 'btn-update current';
+      btn.textContent = hasUpdate ? '↑ Actualizar' : '✓ Al día';
+    }
+    toast('No se pudo actualizar (sin conexión)', 'err');
+  }
+}
+
+async function updateAllGames() {
+  const btn = document.getElementById('updateAllBtn');
+  if (btn) { btn.textContent = '↑ Actualizando…'; btn.style.opacity = '.5'; btn.style.pointerEvents = 'none'; }
+  const ids = Object.keys(GAME_REGISTRY);
+  await Promise.all(ids.map(id => updateSingleGame(id)));
+  renderInstalledGames();
+  if (btn) { btn.textContent = '↑ Actualizar todos'; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+  toast('Todos los juegos al día ✓', 'ok');
+}
+
+function buildGameUrl(gameId, params) {
+  const cached = getCachedGame(gameId);
+  if (cached?.html) {
+    const blob = new Blob([cached.html], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    window._pendingGameParams = params;
+    return blobUrl;
+  }
+  const g = GAME_REGISTRY[gameId];
+  const qs = new URLSearchParams(params).toString();
+  return g.url + (qs ? '?' + qs : '');
+}
+
+/* ══ IFRAME MESSAGE LISTENER ══ */
+// Games send GAME_CLOSED when the user leaves/closes the room
+window.addEventListener('message', (e) => {
+  if (!activeGame) return;
+  const frame = document.getElementById('gameFrame');
+  if (e.source !== frame?.contentWindow) return;
+  if (e.data?.type === 'GAME_CLOSED') {
+    closeGame();
+  }
+});
+</script>
+</body>
+</html>

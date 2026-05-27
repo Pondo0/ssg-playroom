@@ -1,0 +1,3518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Dominó · PlayRoom</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0c0d0f;--bg2:#141518;--bg3:#1c1e22;--bg4:#252830;
+  --line:rgba(255,255,255,0.06);--line2:rgba(255,255,255,0.11);--line3:rgba(255,255,255,0.18);
+  --text:#f2efe8;--text2:#7e7c8a;--text3:#44424e;
+  --t1:#6b8af5;--t1bg:rgba(107,138,245,0.13);--t1b:rgba(107,138,245,0.3);
+  --t2:#4ecba0;--t2bg:rgba(78,203,160,0.13);--t2b:rgba(78,203,160,0.3);
+  --gold:#e8c94a;--goldbg:rgba(232,201,74,0.13);--goldb:rgba(232,201,74,0.3);
+  --red:#f06464;--redbg:rgba(240,100,100,0.13);--redb:rgba(240,100,100,0.3);
+  --grn:#5ecf7a;--grnbg:rgba(94,207,122,0.13);--grnb:rgba(94,207,122,0.3);
+  --pur:#a07ef5;--purbg:rgba(160,126,245,0.13);--purb:rgba(160,126,245,0.3);
+  --r:14px;--rsm:8px;--rlg:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:10px;padding:13px 16px;
+  border-bottom:1px solid var(--line);background:rgba(12,13,15,.92);
+  backdrop-filter:blur(16px);position:sticky;top:0;z-index:50;}
+.logo{font-size:15px;font-weight:700;letter-spacing:-.02em;}
+.logo em{color:var(--t1);font-style:normal;}
+.hdr-room{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;
+  background:var(--t1bg);color:var(--t1);border:1px solid var(--t1b);
+  padding:3px 10px;border-radius:999px;letter-spacing:.08em;display:none;}
+
+/* APP */
+.app{max-width:500px;margin:0 auto;padding:14px 14px 90px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;margin-bottom:10px;}
+.card.accent{border-color:var(--t1b);background:var(--t1bg);}
+.card.warn{border-color:var(--goldb);background:var(--goldbg);}
+.card.err{border-color:var(--redb);background:var(--redbg);}
+.card.ok{border-color:var(--grnb);background:var(--grnbg);}
+.lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.lbl-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.lbl-row .lbl{margin:0;}
+
+/* INPUTS */
+input,select,textarea{width:100%;padding:11px 13px;font-size:14px;font-family:'Outfit',sans-serif;
+  background:var(--bg3);border:1px solid var(--line2);border-radius:var(--rsm);
+  color:var(--text);outline:none;transition:border .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--t1);}
+select option{background:var(--bg2);}
+.row{display:flex;gap:8px;margin-bottom:8px;}
+.row input,.row select{flex:1;min-width:0;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 18px;border-radius:var(--rsm);font-size:14px;font-family:'Outfit',sans-serif;
+  font-weight:600;cursor:pointer;border:1px solid var(--line2);background:transparent;
+  color:var(--text);transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg3);}
+.btn:active{transform:scale(.96);}
+.btn-accent{background:var(--t1);border-color:var(--t1);color:#fff;}
+.btn-accent:hover{filter:brightness(1.1);}
+.btn-t2{background:var(--t2bg);border-color:var(--t2b);color:var(--t2);}
+.btn-gold{background:var(--goldbg);border-color:var(--goldb);color:var(--gold);}
+.btn-red{background:var(--redbg);border-color:var(--redb);color:var(--red);}
+.btn-grn{background:var(--grnbg);border-color:var(--grnb);color:var(--grn);}
+.btn-ghost{border-color:transparent;color:var(--text2);}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-full{width:100%;margin-bottom:8px;}
+.btn-sm{padding:7px 12px;font-size:12px;}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.brow .btn{flex:1;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--bg4);border:1px solid var(--line2);border-radius:999px;
+  padding:10px 20px;font-size:13px;font-weight:600;opacity:0;
+  transition:all .28s;pointer-events:none;z-index:300;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--redbg);border-color:var(--redb);color:var(--red);}
+.toast.ok{background:var(--grnbg);border-color:var(--grnb);color:var(--grn);}
+.toast.warn{background:var(--goldbg);border-color:var(--goldb);color:var(--gold);}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(12,13,15,.95);
+  backdrop-filter:blur(16px);border-top:1px solid var(--line);
+  display:none;justify-content:space-around;
+  padding:8px 0 max(10px,env(safe-area-inset-bottom));}
+.bnav.show{display:flex;}
+.action-bar{position:fixed;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 56px);left:0;right:0;padding:8px 14px;z-index:40;display:none;background:rgba(12,13,15,.97);border-top:1px solid var(--line);backdrop-filter:blur(12px);}
+.action-bar.show{display:block;}
+.nitem{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 14px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:600;
+  letter-spacing:.04em;border:none;background:transparent;font-family:'Outfit',sans-serif;
+  text-transform:uppercase;transition:color .15s;}
+.nitem.on{color:var(--t1);}
+.ni{font-size:20px;}
+
+/* MODAL */
+.mwrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  align-items:flex-end;justify-content:center;}
+.mwrap.open{display:flex;animation:fadeUp .2s ease;}
+.modal{background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--rlg) var(--rlg) 0 0;width:100%;max-width:500px;
+  padding:20px 18px max(20px,env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;}
+.mhandle{width:36px;height:4px;background:var(--bg4);border-radius:999px;margin:0 auto 16px;}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:14px;}
+
+/* HOME */
+.hero{text-align:center;padding:2.5rem 0 1.5rem;}
+.hero-glyph{font-size:52px;margin-bottom:10px;display:block;}
+.hero h1{font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px;}
+.hero p{font-size:14px;color:var(--text2);max-width:280px;margin:0 auto;line-height:1.6;}
+.mono-in{font-family:'DM Mono',monospace !important;letter-spacing:.15em;font-size:20px !important;text-align:center;text-transform:uppercase;}
+.code-box{font-family:'DM Mono',monospace;font-size:36px;font-weight:500;letter-spacing:10px;
+  text-align:center;color:var(--t1);background:var(--t1bg);border:1px solid var(--t1b);
+  border-radius:var(--r);padding:1.25rem;margin:10px 0;}
+
+/* PLAYER CHIP */
+.pchip{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:var(--rsm);margin-bottom:6px;}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.pname{flex:1;font-size:14px;font-weight:600;}
+.pmeta{font-size:11px;color:var(--text3);}
+.dot{width:7px;height:7px;border-radius:50%;}
+.don{background:var(--grn);}.doff{background:var(--text3);}
+
+/* TAGS / BADGES */
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin:1px;}
+.tg-t1{background:var(--t1bg);color:var(--t1);}
+.tg-t2{background:var(--t2bg);color:var(--t2);}
+.tg-gold{background:var(--goldbg);color:var(--gold);}
+.tg-red{background:var(--redbg);color:var(--red);}
+.tg-grn{background:var(--grnbg);color:var(--grn);}
+.tg-pur{background:var(--purbg);color:var(--pur);}
+.tg-gray{background:rgba(255,255,255,.06);color:var(--text2);}
+
+/* OPTS (pill buttons) */
+.opts{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+.opt{padding:6px 13px;border:1px solid var(--line2);border-radius:999px;font-size:12px;
+  font-weight:600;cursor:pointer;background:transparent;color:var(--text2);
+  font-family:'Outfit',sans-serif;transition:all .15s;}
+.opt.on{background:var(--t1bg);border-color:var(--t1b);color:var(--t1);}
+
+/* SCORE COLS */
+.score-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.sc{border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid;}
+.sc.s1{background:var(--t1bg);border-color:var(--t1b);}
+.sc.s2{background:var(--t2bg);border-color:var(--t2b);}
+.sc-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.sc-label.c1{color:var(--t1);}.sc-label.c2{color:var(--t2);}
+.sc-pts{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;}
+.sc-pts.c1{color:var(--t1);}.sc-pts.c2{color:var(--t2);}
+.sc-meta{font-size:11px;color:var(--text2);margin-top:3px;}
+.prog{height:4px;background:rgba(255,255,255,.06);border-radius:999px;margin:5px 0;overflow:hidden;}
+.prog-fill{height:100%;border-radius:999px;transition:width .4s ease;}
+
+/* NUMPAD */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;}
+.nk{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--rsm);
+  padding:12px;text-align:center;font-size:16px;font-weight:600;cursor:pointer;
+  font-family:'DM Mono',monospace;transition:all .12s;user-select:none;}
+.nk:active{transform:scale(.93);background:var(--bg4);}
+.nk.del{background:var(--redbg);border-color:var(--redb);color:var(--red);}
+.nk.ok{background:var(--grnbg);border-color:var(--grnb);color:var(--grn);}
+.numpad-display{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--rsm);
+  padding:12px 16px;font-family:'DM Mono',monospace;font-size:24px;font-weight:600;
+  text-align:center;margin-bottom:6px;min-height:52px;color:var(--text);}
+
+/* PLAYER SELECTOR (dos columnas para anotador) */
+.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.col-team{background:var(--bg3);border-radius:var(--rsm);padding:10px;border:1px solid var(--line);}
+.col-team-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.player-btn{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--line2);
+  background:transparent;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;
+  font-weight:600;cursor:pointer;margin-bottom:5px;transition:all .15s;text-align:left;}
+.player-btn:hover{background:var(--bg4);}
+.player-btn.selected-winner{background:var(--grnbg);border-color:var(--grnb);color:var(--grn);}
+.player-btn.selected-fault{background:var(--redbg);border-color:var(--redb);color:var(--red);}
+.player-btn.selected-pending{background:var(--t1bg);border-color:var(--t1b);color:var(--t1);}
+
+/* READY LIST */
+.ready-row{display:flex;align-items:center;gap:8px;padding:8px 0;
+  border-bottom:1px solid var(--line);font-size:13px;}
+.ready-row:last-child{border-bottom:none;}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.rd-on{background:var(--grn);}.rd-off{background:var(--text3);}
+
+/* TABLE */
+.table-row{display:flex;align-items:center;gap:8px;padding:9px 0;
+  border-bottom:1px solid var(--line);font-size:13px;}
+.table-row:last-child{border-bottom:none;}
+.tr-rank{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);min-width:20px;}
+.tr-name{flex:1;font-weight:500;}
+.tr-score{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;}
+
+/* MESA CARD */
+.mesa-card{background:var(--bg3);border:1px solid var(--line);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;}
+.mesa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.mesa-title{font-size:14px;font-weight:600;}
+.mesa-score{font-family:'DM Mono',monospace;font-size:13px;color:var(--text2);}
+.mesa-players{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.mesa-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);}
+
+/* WAITING */
+.waiting-box{text-align:center;padding:2rem 1rem;}
+.wb-icon{font-size:40px;margin-bottom:10px;}
+.wb-title{font-size:17px;font-weight:600;margin-bottom:6px;}
+.wb-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem;}
+.spinner{width:24px;height:24px;border:2px solid var(--line2);border-top-color:var(--t1);
+  border-radius:50%;animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.queue-chip{display:inline-flex;align-items:center;gap:5px;background:var(--t1bg);
+  border:1px solid var(--t1b);border-radius:999px;padding:4px 10px;
+  font-size:12px;font-weight:600;color:var(--t1);margin:2px;}
+
+/* CONFLICT */
+.conflict-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.conflict-side{background:var(--bg3);border-radius:var(--rsm);padding:10px;border:1px solid var(--line);text-align:center;}
+.conflict-scorer{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.conflict-val{font-size:14px;font-weight:600;}
+
+/* VICTORY BADGE */
+.vbadge{display:inline-block;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;}
+.vb-s{background:var(--t1bg);color:var(--t1);}
+.vb-d{background:var(--purbg);color:var(--pur);}
+.vb-z{background:var(--goldbg);color:var(--gold);}
+
+/* FAULT LIST */
+.fault-item{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:var(--rsm);
+  margin-bottom:5px;cursor:pointer;transition:all .15s;}
+.fault-item:hover{border-color:var(--redb);background:var(--redbg);}
+.fault-item.selected{border-color:var(--redb);background:var(--redbg);}
+.fault-icon{font-size:16px;}
+.fault-text{flex:1;font-size:13px;font-weight:500;}
+.fault-pts{font-size:11px;color:var(--red);}
+
+/* PAIR CHIPS */
+.pair-chip{display:flex;align-items:center;gap:8px;padding:9px 12px;
+  background:var(--t1bg);border:1.5px solid var(--t1b);border-radius:var(--rsm);
+  cursor:grab;transition:all .15s;user-select:none;}
+.pair-chip:active{cursor:grabbing;transform:scale(.97);}
+.pair-chip.dragging{opacity:.5;}
+.pair-chip .pc-avs{display:flex;align-items:center;gap:-4px;}
+.pair-chip .pc-avs .av{width:26px;height:26px;font-size:10px;margin-right:-6px;border:1.5px solid var(--bg2);}
+.pair-chip .pc-names{flex:1;font-size:13px;font-weight:600;color:var(--t1);padding-left:10px;}
+.pair-chip .pc-remove{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px;transition:color .15s;flex-shrink:0;}
+.pair-chip .pc-remove:hover{color:var(--red);}
+.player-pick{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:5px;
+  background:var(--bg3);border:1px solid var(--line2);border-radius:var(--rsm);
+  cursor:pointer;transition:all .15s;}
+.player-pick:hover{border-color:var(--t1b);background:var(--t1bg);}
+.player-pick.picking{border-color:var(--gold);background:var(--goldbg);animation:pulse-gold 1s ease infinite;}
+.player-pick.paired{opacity:.3;pointer-events:none;}
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(232,201,74,.0)}50%{box-shadow:0 0 0 4px rgba(232,201,74,.15)}}
+.pending-pairs-area{margin-bottom:10px;}
+.pending-pairs-area .lbl2{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.slot-remove{cursor:pointer;color:var(--text3);font-size:13px;padding:2px 5px;border-radius:4px;transition:color .12s;}
+.slot-remove:hover{color:var(--red);}
+.mesa-slot{display:flex;align-items:center;gap:6px;padding:6px 8px;
+  background:var(--bg4);border-radius:6px;margin-bottom:4px;font-size:12px;}
+.mesa-slot .slot-name{flex:1;font-weight:600;}
+.mesa-drop{min-height:54px;border-radius:var(--rsm);padding:2px;transition:background .15s;}
+.mesa-drop.drag-over{background:var(--t1bg);border:1.5px dashed var(--t1b);}
+
+/* UTILS */
+.mono{font-family:'DM Mono',monospace;}
+.muted{color:var(--text2);}
+.small{font-size:12px;}
+.center{text-align:center;}
+.sep{border:none;border-top:1px solid var(--line);margin:12px 0;}
+.fb{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.hidden{display:none!important;}
+.mt8{margin-top:8px;}
+.mt12{margin-top:12px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">🁣 <em>Dominó</em> · PlayRoom</div>
+  <div class="hdr-room" id="hdrRoom"></div>
+</div>
+
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<!-- ══ HOME ══ -->
+<div id="sHome" class="screen active">
+  <div class="hero">
+    <span class="hero-glyph">🁣🀱🁫</span>
+    <h1>Dominó</h1>
+    <p>Gestión de torneos, mesas asíncronas y emparejamiento inteligente.</p>
+  </div>
+  <div class="card">
+    <div class="lbl">Tu nombre</div>
+    <input type="text" id="nickIn" placeholder="¿Cómo te llamas?" maxlength="20" style="margin-bottom:12px;"/>
+    <div class="brow">
+      <button class="btn btn-accent" onclick="createRoom()">Crear sala</button>
+      <button class="btn" onclick="toggleJoin()">Unirse</button>
+    </div>
+  </div>
+  <div class="card hidden" id="joinCard">
+    <div class="lbl">Código de sala</div>
+    <input type="text" id="codeIn" class="mono-in" placeholder="XXXXXX" maxlength="6" style="margin-bottom:10px;"/>
+    <button class="btn btn-accent btn-full" onclick="joinRoom()">Entrar</button>
+  </div>
+</div>
+
+<!-- ══ LOBBY ══ -->
+<div id="sLobby" class="screen">
+  <!-- Tournament name + code + mesas -->
+  <div class="card" style="margin-bottom:8px;padding:14px 16px;">
+    <div class="lbl" style="margin-bottom:4px;">Nombre del torneo</div>
+    <input type="text" id="tournamentNameIn" maxlength="40" placeholder="Torneo DD MMM - HH"
+      style="margin-bottom:12px;font-size:15px;font-weight:600;"
+      oninput="saveTournamentName(this.value)"/>
+    <div class="code-box" id="lobbyCode" style="margin:0 0 12px;">------</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div class="lbl" style="margin:0;">Mesas físicas</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="stepTables(-1)" style="padding:6px 14px;font-size:16px;">−</button>
+        <span style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;min-width:28px;text-align:center;" id="tablesDisplay">1</span>
+        <button class="btn btn-ghost btn-sm" onclick="stepTables(1)" style="padding:6px 14px;font-size:16px;">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="setupCard">
+    <div class="lbl">Configuración del torneo</div>
+
+    <div class="lbl" style="margin-top:4px;">1. Puntos para ganar un juego</div>
+    <div class="opts" id="optPoints">
+      <button class="opt" data-v="50" onclick="setOpt('points',this)">50</button>
+      <button class="opt on" data-v="100" onclick="setOpt('points',this)">100</button>
+      <button class="opt" data-v="150" onclick="setOpt('points',this)">150</button>
+      <button class="opt" data-v="200" onclick="setOpt('points',this)">200</button>
+    </div>
+
+    <div class="lbl">2. Modo torneo</div>
+    <div class="opts" id="optScoring">
+      <button class="opt on" data-v="victories" onclick="setOpt('scoring',this)">Victorias (+1/+2/+3)</button>
+      <button class="opt" data-v="accumulated" onclick="setOpt('scoring',this)">Acumulado</button>
+    </div>
+
+    <div class="lbl">3. Modalidad de anotación</div>
+    <div class="opts" id="optPointMode">
+      <button class="opt on" data-v="winner" onclick="setOpt('pointMode',this)">Puntos al ganador</button>
+      <button class="opt" data-v="loser" onclick="setOpt('pointMode',this)">Puntos al perdedor</button>
+    </div>
+
+    <div class="lbl">4. Emparejamiento</div>
+    <div class="opts" id="optPairs">
+      <button class="opt on" data-v="dynamic" onclick="setOpt('pairs',this)">Dinámico</button>
+      <button class="opt" data-v="fixed" onclick="setOpt('pairs',this)">Fijo</button>
+    </div>
+
+    <div class="lbl">5. Modo del anotador</div>
+    <div class="opts" id="optScorer">
+      <button class="opt on" data-v="player" onclick="setOpt('scorer',this)">Jugador en mesa</button>
+      <button class="opt" data-v="external" onclick="setOpt('scorer',this)">Anotador externo</button>
+      <button class="opt" data-v="double" onclick="setOpt('scorer',this)">Doble anotador</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl-row">
+      <div class="lbl">Jugadores (<span id="pCount">0</span>)</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-ghost" id="addOfflineBtn" onclick="addOfflinePlayer()">+ Sin teléfono</button>
+      </div>
+    </div>
+    <div id="lobbyPlayers"></div>
+    <!-- Host plays toggle — inside players section -->
+    <div id="hostPlaysRow" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);">
+      <div class="lbl" style="margin-bottom:6px;">¿El host juega?</div>
+      <div class="opts" id="optHostPlays">
+        <button class="opt on" data-v="yes" onclick="setOpt('hostPlays',this)">Sí, soy jugador</button>
+        <button class="opt" data-v="no" onclick="setOpt('hostPlays',this)">No, solo administro</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pairsCard" class="card hidden">
+    <div class="lbl">Parejas generadas</div>
+    <div id="pairsList"></div>
+    <div class="brow" id="pairsActions" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="hostLobbyBtns" class="hidden">
+    <button class="btn btn-accent btn-full" style="font-size:15px;" onclick="generatePairs()">Generar parejas</button>
+    <button class="btn btn-full" onclick="startTournament()" id="startBtn" style="display:none;">Iniciar torneo</button>
+    <button class="btn btn-full btn-red" onclick="leaveRoom()">Cerrar sala</button>
+  </div>
+  <div id="guestLobbyBtns" class="hidden">
+    <div style="text-align:center;padding:12px;font-size:13px;color:var(--text2);">Esperando que el host inicie…</div>
+    <button class="btn btn-full btn-red" onclick="leaveRoom()">Salir</button>
+  </div>
+</div>
+
+<!-- ══ GAME (jugador / espectador) ══ -->
+<div id="sGame" class="screen">
+  <!-- Mesa header — always visible when on game screen -->
+  <div id="mesaHeader" style="display:none;padding:8px 2px 10px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--line);margin-bottom:8px;line-height:1.5;"></div>
+
+  <!-- Estado: esperando emparejamiento -->
+  <div id="stWaiting" class="hidden">
+    <div class="card">
+      <div class="waiting-box">
+        <div class="wb-icon">⏳</div>
+        <div class="wb-title">Esperando emparejamiento</div>
+        <div class="wb-sub" id="waitingReason">Hay partidas en curso. En cuanto termine una mesa se asignará tu siguiente juego.</div>
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+          <div class="spinner"></div>
+          <span class="small muted">Esperando que termine una mesa…</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">Mesas activas</div>
+      <div id="waitingMesas"></div>
+    </div>
+    <div class="card">
+      <div class="lbl">También esperando</div>
+      <div id="waitingQueue"></div>
+    </div>
+    <button class="btn btn-red btn-full" style="margin-top:4px;" onclick="abandonTournament()">Abandonar torneo</button>
+  </div>
+
+  <!-- Estado: lobby de mano -->
+  <div id="stLobby" class="hidden">
+    <div class="card">
+      <div class="lbl">¿Listos para iniciar?</div>
+      <div id="readyList" style="display:flex;gap:10px;"></div>
+      <div id="lobbyScorerow" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Estado: en juego — solo vista de mesa -->
+  <div id="stPlaying" class="hidden">
+    <div class="card">
+      <div class="score-cols" id="playingScoreCols"></div>
+    </div>
+  </div>
+
+
+
+  <!-- Scorer section — visible only for scorer on Mesa tab -->
+  <div id="scorerSection" class="hidden">
+
+  <!-- Aceptar rol -->
+  <div id="scorerAccept" class="hidden">
+    <div class="card accent">
+      <div class="wb-icon center" style="font-size:32px;padding:8px 0;">📋</div>
+      <div class="wb-title center" id="scorerAcceptTitle">Eres el anotador propuesto</div>
+      <div class="wb-sub center" id="scorerAcceptSub">¿Aceptas ser el anotador de esta mesa?</div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-grn" onclick="acceptScorer()">✓ Sí, yo anoto</button>
+      <button class="btn btn-ghost" onclick="openChangeScorerPanel()">Cambiar anotador</button>
+    </div>
+  </div>
+
+  <!-- Panel de selección de anotador (sin anotador asignado o cambio) -->
+  <div id="scorerPendingPanel" class="hidden">
+    <div class="card warn">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:20px;">📋</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">Sin anotador asignado</div>
+          <div class="small muted" id="scorerPendingSub">Selecciona quién va a anotar esta mesa</div>
+        </div>
+      </div>
+      <div id="scorerCandidateList"></div>
+    </div>
+  </div>
+
+  <!-- Anotador confirmado (jugador en mesa) — mini strip -->
+  <div id="scorerConfirmedStrip" class="hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;
+      background:var(--t1bg);border:1px solid var(--t1b);border-radius:var(--rsm);margin-bottom:8px;">
+      <span style="font-size:14px;">📋</span>
+      <span style="flex:1;font-size:12px;font-weight:600;color:var(--t1);" id="scorerConfirmedName">Anotador</span>
+      <button class="btn btn-ghost btn-sm" onclick="openChangeScorerPanel()" style="padding:3px 8px;font-size:11px;">Cambiar</button>
+    </div>
+  </div>
+
+  <!-- Anotador libre/dedicado — card grande -->
+  <div id="scorerAssignedCard" class="hidden">
+    <div class="card accent" style="text-align:center;padding:24px 18px 20px;">
+      <div style="font-size:40px;margin-bottom:14px;">📋</div>
+      <div style="font-size:14px;font-weight:400;color:var(--text2);margin-bottom:6px;" id="scorerAssignedLabel">Ha sido asignado como <strong style="color:var(--t1);">anotador</strong> a la</div>
+      <div style="font-size:28px;font-weight:700;color:var(--text);" id="scorerAssignedTitle">Mesa 1</div>
+    </div>
+    <button class="btn btn-ghost btn-full" onclick="openChangeScorerPanel()" style="margin-top:2px;">Cambiar anotador</button>
+  </div>
+
+  <!-- Registro de mano -->
+  <div id="scorerRegister" class="hidden">
+    <!-- Winner card: who finished + player select + numpad -->
+    <div class="card" id="scorerWinnerCard">
+      <div id="selectedPlayerStrip"></div>
+      <div style="margin-top:8px;margin-bottom:4px;">
+        <div class="lbl" style="margin:0;">Selecciona al jugador para asignar puntos</div>
+      </div>
+      <div class="two-cols" id="scorerPlayerCols"></div>
+      <!-- Calculadora — aparece tras seleccionar jugador -->
+      <div id="scorerPointsCard" class="hidden" style="margin-top:10px;">
+        <input type="number" id="numNative" class="numpad-native" min="0" max="999" placeholder="Puntos" inputmode="numeric" pattern="[0-9]*" oninput="syncNativeNum(this.value)" onkeydown="if(event.key==='Enter'){assignPlayerPoints();this.blur();}" style="font-size:28px;font-weight:700;text-align:center;padding:14px;margin-bottom:8px;"/>
+        <div class="numpad" id="numpad"></div>
+        <div class="small muted" style="text-align:center;margin-top:4px;">
+          ✓ asigna los puntos al jugador seleccionado
+        </div>
+      </div>
+    </div>
+
+    <!-- Catálogo de faltas — aparece al tocar "Falta" -->
+    <div class="card hidden" id="scorerFaultCatalog">
+      <div class="lbl">Registrar falta</div>
+      <div id="faultCatalogInner"></div>
+    </div>
+
+    <!-- confirmHandBtn moved to action bar -->
+  </div>
+
+  <!-- Post-mano: resultado + acciones -->
+  <div id="scorerPostHand" class="hidden">
+    <div id="scorerPostStatus"></div>
+  </div>
+
+  <!-- Conflicto de anotadores -->
+  <div id="scorerConflict" class="hidden">
+    <div class="card err">
+      <div class="lbl">⚠ Conflicto entre anotadores</div>
+      <div class="small muted" style="margin-bottom:10px;">Los registros no coinciden. Deben resolverlo antes de continuar.</div>
+      <div class="conflict-cols" id="conflictCols"></div>
+    </div>
+    <div id="conflictActions"></div>
+  </div>
+
+  </div><!-- /scorerSection -->
+</div>
+
+<!-- ══ SCORER (anotador) ══ -->
+
+
+<!-- ══ HOST PANEL ══ -->
+<div id="sHost" class="screen">
+  <div id="hostMesas"></div>
+  <div class="card">
+    <div class="lbl-row">
+      <div class="lbl">Jugadores (<span id="hostPCount">0</span>)</div>
+      <button class="btn btn-sm btn-ghost" onclick="addOfflinePlayer()">+ Jugador</button>
+    </div>
+    <div id="hostPlayerList"></div>
+  </div>
+  <div class="card"><div class="lbl">Configuración</div><div id="hostCfgSummary"></div></div>
+  <div id="hostBottomBtns" style="margin-bottom:8px;"></div>
+</div>
+
+<!-- ══ TABLA ══ -->
+<div id="sTable" class="screen">
+  <div class="card">
+    <div class="lbl">Tabla del torneo</div>
+    <div id="fullLeaderboard"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Historial de juegos</div>
+    <div id="gameHistory"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<div class="action-bar" id="actionBar"></div>
+<nav class="bnav" id="bnav">
+  <button class="nitem hidden on" id="nHost" onclick="goNav('host')"><span class="ni">🎛️</span>Host</button>
+  <button class="nitem hidden" id="nTable" onclick="goNav('table')"><span class="ni">📊</span>Tabla</button>
+  <button class="nitem hidden" id="nGame" onclick="goNav('game')"><span class="ni">🎯</span>Mesa<span id="nGameBadge" class="hidden" style="display:inline-block;background:var(--gold);color:#000;font-size:9px;font-weight:800;border-radius:999px;padding:1px 5px;margin-left:3px;vertical-align:middle;">!</span></button>
+</nav>
+
+<!-- MODALS -->
+
+</div>
+
+<div class="mwrap" id="faultModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3>Registrar falta</h3>
+    <div id="faultTeamSelect" style="margin-bottom:12px;"></div>
+    <div id="faultTypeList"></div>
+    <div class="brow mt8">
+      <button class="btn btn-red" onclick="confirmFault()">Registrar (+25 pts contrario)</button>
+      <button class="btn btn-ghost" onclick="closeModal('faultModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mwrap" id="transferScorerModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3>Transferir rol de anotador</h3>
+    <div id="transferScorerList"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="closeModal('transferScorerModal')">Cancelar</button>
+  </div>
+</div>
+
+<div class="mwrap" id="freeTableModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3 id="freeTableTitle">Liberar mesa</h3>
+    <p class="small muted" id="freeTableSub" style="margin-bottom:14px;line-height:1.6;"></p>
+    <button class="btn btn-red btn-full" style="margin-bottom:8px;justify-content:flex-start;gap:12px;" onclick="freeTableAction('free')">
+      <span style="font-size:18px;">🔓</span>
+      <div style="text-align:left;">
+        <div style="font-weight:700;">Liberar a todos</div>
+        <div class="small muted">Los jugadores quedan disponibles para nuevas parejas</div>
+      </div>
+    </button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('freeTableModal')">Cancelar</button>
+  </div>
+</div>
+
+
+<div class="mwrap" id="hostScorerModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <h3 id="hostScorerTitle">Registrar resultado</h3>
+    <div id="hostScorerBody"></div>
+    <div class="brow mt8">
+      <button class="btn btn-grn btn-full" onclick="hostSubmitScore()">Confirmar</button>
+      <button class="btn btn-ghost" onclick="closeModal('hostScorerModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDBjneB-I6UoRGx71datO9k1pEQ5eSpi_Q",
+  authDomain:"juegos-encasa.firebaseapp.com",
+  databaseURL:"https://juegos-encasa-default-rtdb.firebaseio.com",
+  projectId:"juegos-encasa",
+  storageBucket:"juegos-encasa.firebasestorage.app",
+  messagingSenderId:"535430380122",
+  appId:"1:535430380122:web:9d8d2991a6f1a141c33663"
+});
+const db = firebase.database();
+
+/* ── VERSIÓN ── */
+const GAME_ID      = 'domino';
+const GAME_VERSION = '2.0';
+const GAME_MAJOR   = '2';
+
+/* ══ HUB BOOTSTRAP ══ */
+const _params  = new URLSearchParams(window.location.search);
+const _fromHub = _params.get('hub') === '1';
+const _hubNick = _params.get('nick') || '';
+const _hubCode = (_params.get('code') || '').toUpperCase();
+const _hubWasHost = _params.get('was_host') === '1';
+
+function _hubProfile() {
+  try { return JSON.parse(localStorage.getItem('pr_profile') || 'null'); } catch(e) { return null; }
+}
+
+function _hubSaveRoom(code, wasHost) {
+  if (!_fromHub) return;
+  try {
+    const raw = localStorage.getItem('pr_room_history');
+    let hist = raw ? JSON.parse(raw) : [];
+    hist = hist.filter(h => h.code !== code);
+    hist.push({ code, game: 'domino', date: Date.now(), myName: myNick, wasHost: !!wasHost });
+    if (hist.length > 20) hist = hist.slice(-20);
+    localStorage.setItem('pr_room_history', JSON.stringify(hist));
+    const rawStats = localStorage.getItem('pr_stats');
+    const stats = rawStats ? JSON.parse(rawStats) : { gamesPlayed:0, wins:0, losses:0 };
+    stats.lastGame = 'domino';
+    localStorage.setItem('pr_stats', JSON.stringify(stats));
+  } catch(e) {}
+}
+
+/* ══ STATE ══ */
+const _prof = _hubProfile();
+let myId    = _prof?.id || 'u'+Math.random().toString(36).slice(2,9);
+let myNick  = _hubNick || _prof?.name || localStorage.getItem('dom_nick') || '';
+let roomCode='', isHost=false, roomRef=null, roomListener=null;
+let cfg     = { pairs:'dynamic', scoring:'victories', points:100, pointMode:'winner', scorer:'player', hostPlays:'yes', tables:2 };
+let myTableId = null;
+let numBuf  = '';
+let pendingWinner = null;
+let handWinner = null;
+let juegoCerrado = false;
+let pendingFaultTeam = null;
+let pendingFaultType = null;
+let faultSelectedType = null;
+let pendingFaultMode = false;
+let playerPoints = {};
+let hostSelectedForPair = [];
+let hostPendingPairs = []; // [{p1, p2}] — parejas formadas esperando asignación
+let hostSelectingFirst = null; // primer jugador seleccionado (un clic)
+let hostAutoSwitchedToGame = false;
+let lastKnownHandNumber = 0; // para detectar cambio de mano y resetear estado del anotador
+
+const AV_COLORS = [
+  {bg:'rgba(107,138,245,.2)',c:'#6b8af5'},
+  {bg:'rgba(78,203,160,.2)',c:'#4ecba0'},
+  {bg:'rgba(232,201,74,.2)',c:'#e8c94a'},
+  {bg:'rgba(160,126,245,.2)',c:'#a07ef5'},
+  {bg:'rgba(240,100,100,.2)',c:'#f06464'},
+  {bg:'rgba(94,207,122,.2)',c:'#5ecf7a'},
+];
+function avStyle(name){
+  const i=(name.charCodeAt(0)+name.length)%AV_COLORS.length;
+  return `background:${AV_COLORS[i].bg};color:${AV_COLORS[i].c};`;
+}
+function avLetters(n){ return (n||'??').slice(0,2).toUpperCase(); }
+
+const FAULTS = [
+  {id:'paso',text:'Paso en falso',desc:'Dijo no tener ficha cuando sí tenía'},
+  {id:'ficha',text:'Ficha equivocada',desc:'Colocó una ficha en lugar incorrecto'},
+  {id:'adelanto',text:'Adelantarse al turno',desc:'Jugó antes que el jugador anterior'},
+  {id:'tiempo',text:'Pensar en exceso',desc:'Demoró con solo una jugada posible'},
+];
+
+/* ══ UTILS ══ */
+let toastTmr;
+function toast(msg,type=''){
+  clearTimeout(toastTmr);
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show '+(type||'');
+  toastTmr=setTimeout(()=>el.className='toast',2800);
+}
+function show(id){document.getElementById(id)?.classList.remove('hidden');}
+function hide(id){document.getElementById(id)?.classList.add('hidden');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goNav(tab){
+  const map={game:'sGame',table:'sTable',scorer:'sGame',host:'sHost'};
+  showScreen(map[tab]||'sGame');
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('on'));
+  const key='n'+tab.charAt(0).toUpperCase()+tab.slice(1);
+  document.getElementById(key)?.classList.add('on');
+  if(tab!=='game'){
+    hide('scorerSection');
+    var mh=document.getElementById('mesaHeader'); if(mh) mh.style.display='none';
+    if(tab!=='host'){
+      var bar=document.getElementById('actionBar'); if(bar){ bar.className='action-bar'; bar.innerHTML=''; }
+    }
+  } else if(roomRef){
+    updateScorerBadge(false);
+    roomRef.once('value').then(snap=>{
+      if(!snap.exists()) return;
+      const d=snap.val(); renderGameAndScorer(d,d.players||{},d.tables||{});
+      // Force show action bar after render completes with sGame now active
+      var bar=document.getElementById('actionBar');
+      if(bar && bar.innerHTML) bar.classList.add('show');
+    });
+  }
+}
+function genCode(){
+  return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+}
+function setOpt(key,el){
+  document.getElementById('opt'+key.charAt(0).toUpperCase()+key.slice(1))
+    ?.querySelectorAll('.opt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  cfg[key]=el.dataset.v;
+  if(isHost) roomRef?.child('cfg').set(cfg);
+}
+function victoryType(loserPts){
+  if(loserPts===0) return {type:'zapato',pts:3,label:'Zapato 👟'};
+  if(loserPts<50)  return {type:'double',pts:2,label:'Victoria doble'};
+  return {type:'single',pts:1,label:'Victoria sencilla'};
+}
+function vbClass(type){
+  return type==='zapato'?'vb-z':type==='double'?'vb-d':'vb-s';
+}
+
+/* ══ HOME ══ */
+if(myNick) document.getElementById('nickIn').value=myNick;
+function toggleJoin(){document.getElementById('joinCard').classList.toggle('hidden');}
+
+async function createRoom(){
+  myNick=document.getElementById('nickIn').value.trim();
+  if(!myNick){toast('Escribe tu nombre','err');return;}
+  localStorage.setItem('dom_nick',myNick);
+  isHost=true; roomCode=genCode();
+  roomRef=db.ref('dom_rooms/'+roomCode);
+  const role=cfg.hostPlays==='yes'?'player':'host_only';
+  await roomRef.set({
+    host:myId,status:'lobby',createdAt:Date.now(),cfg,
+    tournamentName:defaultTournamentName(),
+    players:{[myId]:{id:myId,name:myNick,role,online:true,offline:false,
+      score:0,gamesPlayed:0,wins:0,losses:0,pairHistory:[],pairVuelta:1,status:'available',level:2}},
+    tables:{},pairs:{},history:[],waitingQueue:[],
+  });
+  roomRef.onDisconnect().remove();
+  _hubSaveRoom(roomCode, true);
+  enterLobby();
+}
+
+async function joinRoom(){
+  myNick=document.getElementById('nickIn').value.trim();
+  const code=(document.getElementById('codeIn').value||'').trim().toUpperCase();
+  if(!myNick){toast('Escribe tu nombre','err');return;}
+  if(code.length<4){toast('Código inválido','err');return;}
+  const snap=await db.ref('dom_rooms/'+code).once('value');
+  if(!snap.exists()){
+    handleRoomNotFound(code);
+    return;
+  }
+  roomCode=code;roomRef=db.ref('dom_rooms/'+roomCode);isHost=false;
+  localStorage.setItem('dom_nick',myNick);
+  await roomRef.child('players/'+myId).set({
+    id:myId,name:myNick,role:'player',online:true,offline:false,
+    score:0,gamesPlayed:0,wins:0,losses:0,pairHistory:[],pairVuelta:1,status:'available',level:2
+  });
+  roomRef.child('players/'+myId).onDisconnect().update({online:false});
+  _hubSaveRoom(roomCode, false);
+  enterLobby();
+}
+
+/* ── ROOM NOT FOUND ── */
+function handleRoomNotFound(code) {
+  const wasHost = _hubWasHost || (() => {
+    try {
+      const hist = JSON.parse(localStorage.getItem('pr_room_history') || '[]');
+      const entry = hist.find(h => h.code === code);
+      return !!(entry?.wasHost);
+    } catch(e) { return false; }
+  })();
+  if (wasHost) {
+    showRoomNotFoundHostUI(code);
+  } else {
+    showRoomNotFoundGuestUI(code);
+  }
+}
+
+function showRoomNotFoundHostUI(code) {
+  const homeEl = document.getElementById('sHome');
+  homeEl.innerHTML = `
+    <div style="text-align:center;padding:2.5rem 0 1.5rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🔑</div>
+      <div style="font-size:20px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px;">Sala expirada</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;max-width:280px;margin:0 auto;">
+        La sala <span style="font-family:'DM Mono',monospace;color:var(--t1);letter-spacing:.1em;">${code}</span> ya no existe — la cerraste anteriormente.
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 18px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+        ¿Quieres crear una nueva sala con el mismo código <strong style="color:var(--text);">${code}</strong>?<br>
+        Otros jugadores que tengan el código podrán unirse.
+      </div>
+      <button class="btn btn-accent btn-full" style="font-size:15px;margin-bottom:8px;" onclick="recreateRoom('${code}')">
+        Recrear sala ${code}
+      </button>
+      <button class="btn btn-full btn-ghost" onclick="goToFreshHome()">
+        Crear sala nueva
+      </button>
+    </div>`;
+  homeEl.classList.add('active');
+}
+
+function showRoomNotFoundGuestUI(code) {
+  const homeEl = document.getElementById('sHome');
+  homeEl.innerHTML = `
+    <div style="text-align:center;padding:2.5rem 0 1.5rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🚪</div>
+      <div style="font-size:20px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px;">Sala no encontrada</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;max-width:280px;margin:0 auto;">
+        La sala <span style="font-family:'DM Mono',monospace;color:var(--t1);letter-spacing:.1em;">${code}</span> no existe o fue cerrada por el host.
+      </div>
+    </div>
+    <div class="card" style="padding:16px 18px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Pide al host que cree la sala de nuevo y comparta el código.</div>
+      <button class="btn btn-full btn-ghost" onclick="goToFreshHome()">← Volver</button>
+    </div>`;
+  homeEl.classList.add('active');
+}
+
+async function recreateRoom(code) {
+  myNick = document.getElementById('nickIn')?.value?.trim() || myNick;
+  if(!myNick){toast('Escribe tu nombre','err');return;}
+  localStorage.setItem('dom_nick', myNick);
+  isHost=true; roomCode=code;
+  roomRef=db.ref('dom_rooms/'+roomCode);
+  const role=cfg.hostPlays==='yes'?'player':'host_only';
+  await roomRef.set({
+    host:myId,status:'lobby',createdAt:Date.now(),cfg,
+    tournamentName:defaultTournamentName(),
+    players:{[myId]:{id:myId,name:myNick,role,online:true,offline:false,
+      score:0,gamesPlayed:0,wins:0,losses:0,pairHistory:[],pairVuelta:1,status:'available',level:2}},
+    tables:{},pairs:{},history:[],waitingQueue:[],
+  });
+  roomRef.onDisconnect().remove();
+  _hubSaveRoom(roomCode, true);
+  enterLobby();
+}
+
+function goToFreshHome() {
+  if(window.parent !== window) {
+    document.getElementById('sHome').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--text2);font-size:14px;"><div class="spinner"></div></div>';
+  } else {
+    window.location.reload();
+  }
+}
+
+function addOfflinePlayer() {
+  roomRef.child('players').once('value').then(function(snap){
+    var existing = Object.values(snap.val()||{}).filter(function(p){ return p.offline; });
+    var nm = 'P' + (existing.length + 1);
+    var oid = 'offline_' + Date.now();
+    roomRef.child('players/'+oid).set({
+      id:oid, name:nm, role:'player', online:true, offline:true,
+      score:0, gamesPlayed:0, wins:0, losses:0,
+      pairHistory:[], pairVuelta:1, status:'available', level:2
+    });
+    toast(nm + ' agregado','ok');
+  });
+}
+
+/* ══ LOBBY ══ */
+function enterLobby(){
+  document.getElementById('hdrRoom').textContent=roomCode;
+  document.getElementById('hdrRoom').style.display='';
+  document.getElementById('bnav').classList.add('show');
+  listenRoom();
+  if(isHost){
+    show('nHost'); show('nTable'); show('nGame');
+    goNav('host');
+  } else {
+    show('nTable'); show('nGame');
+    goNav('game');
+  }
+}
+
+function renderLobbyPlayers(players){
+  const list=Object.values(players||{});
+  document.getElementById('pCount').textContent=list.length;
+  const el=document.getElementById('lobbyPlayers');
+  el.innerHTML=list.map(p=>`
+    <div class="pchip">
+      <div class="av" style="${avStyle(p.name)}">${avLetters(p.name)}</div>
+      <div style="flex:1;">
+        <div class="pname">${p.name}${p.id===myId?' <span class="tag tg-gray">tú</span>':''}</div>
+        <div class="pmeta">${roleLabel(p.role)} ${p.offline?'· Sin teléfono':''}</div>
+      </div>
+      ${isHost&&p.id!==myId?`<select style="width:auto;font-size:11px;padding:4px 6px;" onchange="updateRole('${p.id}',this.value)">
+        <option value="player" ${p.role==='player'?'selected':''}>Jugador</option>
+        <option value="scorer_dedicated" ${p.role==='scorer_dedicated'?'selected':''}>Anotador</option>
+        <option value="spectator" ${p.role==='spectator'?'selected':''}>Espectador</option>
+      </select>`:''}
+      <div class="dot ${p.online?'don':'doff'}"></div>
+    </div>`).join('');
+}
+
+function roleLabel(r){
+  return {player:'Jugador',scorer_dedicated:'Anotador',spectator:'Espectador',host_only:'Host'}[r]||r;
+}
+async function updateRole(pid,val){ await roomRef.child('players/'+pid+'/role').set(val); }
+
+/* ══ PAIR GENERATION ══ */
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5);}
+
+function generatePairsAlgo(players,mode){
+  const eligible=players.filter(p=>p.role==='player'||p.role==='host_only');
+  let sorted;
+  if(mode==='random'||mode==='dynamic'){
+    sorted=shuffle(eligible);
+  } else if(mode==='registration'){
+    sorted=[...eligible];
+  } else if(mode==='balanced'){
+    const byLevel=eligible.sort((a,b)=>b.level-a.level);
+    const mid=Math.ceil(byLevel.length/2);
+    const top=byLevel.slice(0,mid), bot=byLevel.slice(mid);
+    sorted=[];
+    for(let i=0;i<Math.min(top.length,bot.length);i++){sorted.push(top[i],bot[i]);}
+    sorted.push(...top.slice(bot.length),...bot.slice(top.length));
+  } else if(mode==='similar'){
+    sorted=eligible.sort((a,b)=>a.level-b.level);
+  } else {
+    sorted=shuffle(eligible);
+  }
+  const pairs=[];
+  for(let i=0;i<sorted.length-1;i+=2){
+    pairs.push({p1:sorted[i],p2:sorted[i+1]});
+  }
+  if(sorted.length%2===1){
+    pairs.push({p1:sorted[sorted.length-1],p2:null,bye:true});
+  }
+  return pairs;
+}
+
+function defaultTournamentName(){
+  const now=new Date();
+  const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const d=String(now.getDate()).padStart(2,'0');
+  const m=months[now.getMonth()];
+  const h=String(now.getHours()).padStart(2,'0');
+  return `Torneo ${d} ${m} - ${h}`;
+}
+
+function saveTournamentName(val){
+  if(roomRef) roomRef.child('tournamentName').set(val.trim()||defaultTournamentName());
+}
+
+function stepTables(delta){
+  const current=+(cfg.tables||1);
+  const next=Math.max(1,Math.min(10,current+delta));
+  cfg.tables=next;
+  ['tablesDisplay','hostTablesDisplay'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=next;
+  });
+  if(isHost) roomRef?.child('cfg').set(cfg);
+}
+
+async function abandonTournament(){
+  if(!confirm('¿Seguro que quieres abandonar el torneo?')) return;
+  if(!roomRef) return;
+  await roomRef.child('players/'+myId+'/status').set('abandoned');
+  await roomRef.child('players/'+myId+'/online').set(false);
+  // Remove from any table
+  if(myTableId){
+    const snap=await roomRef.child('tables/'+myTableId).once('value');
+    const t=snap.val();
+    if(t){
+      const p1=((t.p1Ids||[]).filter(id=>id!==myId));
+      const p2=((t.p2Ids||[]).filter(id=>id!==myId));
+      await roomRef.child('tables/'+myTableId+'/p1Ids').set(p1);
+      await roomRef.child('tables/'+myTableId+'/p2Ids').set(p2);
+    }
+  }
+  leaveRoomLocal();
+  toast('Abandonaste el torneo');
+}
+
+function generatePairs(){
+  roomRef.child('players').once('value').then(snap=>{
+    const players=Object.values(snap.val()||{});
+    const pairs=generatePairsAlgo(players,cfg.pairs);
+    renderPairsPreview(pairs,players);
+  });
+}
+
+function renderPairsPreview(pairs,allPlayers){
+  const card=document.getElementById('pairsCard');
+  const list=document.getElementById('pairsList');
+  card.classList.remove('hidden');
+  list.innerHTML=pairs.map((pair,i)=>`
+    <div class="pchip" style="margin-bottom:8px;">
+      <div class="av" style="${avStyle(pair.p1.name)}">${avLetters(pair.p1.name)}</div>
+      <span class="pname">${pair.p1.name}</span>
+      ${pair.bye?'<span class="tag tg-gold">BYE</span>':`
+        <span class="muted small">+</span>
+        <div class="av" style="${avStyle(pair.p2.name)}">${avLetters(pair.p2.name)}</div>
+        <span class="pname">${pair.p2.name}</span>
+      `}
+    </div>`).join('');
+
+  const actions=document.getElementById('pairsActions');
+  actions.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="generatePairs()">Regenerar</button>`;
+
+  // store in state
+  roomRef.child('previewPairs').set(pairs.map(p=>({
+    p1Id:p.p1.id,p1name:p.p1.name,
+    p2Id:p.p2?.id||null,p2name:p.p2?.name||null,
+    bye:p.bye||false
+  })));
+
+  document.getElementById('startBtn').style.display='';
+}
+
+async function startTournament(){
+  const snap=await roomRef.once('value');
+  const data=snap.val();
+  const previewPairs=data.previewPairs;
+  if(!previewPairs||!previewPairs.length){toast('Genera parejas primero','err');return;}
+
+  const c=data.cfg||cfg;
+  const physicalTables=+(c.tables||2);
+  const validPairs=previewPairs.filter(pp=>!pp.bye);
+
+  // Each match = 2 pairs facing each other
+  // With 4 players (2 pairs) -> 1 match. With 8 players -> 2 matches, etc.
+  const matches=[];
+  for(let i=0;i+1<validPairs.length;i+=2){
+    matches.push({pair1:validPairs[i],pair2:validPairs[i+1]});
+  }
+
+  const tablesMap={};
+  const playerStatusUpdates={};
+  const assignedSet=new Set();
+  const waitingQueue=[];
+
+  // Odd pair left over -> waiting
+  if(validPairs.length%2===1){
+    const odd=validPairs[validPairs.length-1];
+    [odd.p1Id,odd.p2Id].filter(Boolean).forEach(pid=>waitingQueue.push(pid));
+  }
+
+  const tablesToCreate=Math.min(matches.length,physicalTables);
+
+  for(let i=0;i<tablesToCreate;i++){
+    const m=matches[i];
+    const tid='table_'+(i+1);
+    const p1Ids=[m.pair1.p1Id,m.pair1.p2Id].filter(Boolean);
+    const p2Ids=[m.pair2.p1Id,m.pair2.p2Id].filter(Boolean);
+    const allTablePids=[...p1Ids,...p2Ids];
+    const bestScorer=findBestScorer(allTablePids, {}, {});
+    // We'll compute after having all players — use a placeholder, fix below
+    tablesMap[tid]={
+      id:tid,number:i+1,
+      pair1name:m.pair1.p1name+(m.pair1.p2name?('+'+m.pair1.p2name):'')+'',
+      pair2name:m.pair2.p1name+(m.pair2.p2name?('+'+m.pair2.p2name):'')+'',
+      p1Ids,p2Ids,
+      status:'lobby',handNumber:1,
+      scoreA:0,scoreB:0,hands:[],
+      readyPlayers:{},pendingScores:{},
+      scorers:[],scorerPending:true,
+    };
+    [...p1Ids,...p2Ids].forEach(pid=>{
+      playerStatusUpdates['players/'+pid+'/status']='playing';
+      assignedSet.add(pid);
+    });
+  }
+
+  // Matches beyond physical tables -> waiting queue
+  for(let i=tablesToCreate;i<matches.length;i++){
+    const m=matches[i];
+    [m.pair1.p1Id,m.pair1.p2Id,m.pair2.p1Id,m.pair2.p2Id].filter(Boolean).forEach(pid=>{
+      if(!assignedSet.has(pid)) waitingQueue.push(pid);
+    });
+  }
+
+  // En modo fijo: guardar fixedPairs en Firebase para rotación posterior
+  let fixedPairsMap = {};
+  if ((c.pairs || 'dynamic') === 'fixed') {
+    validPairs.forEach((pp, i) => {
+      const fpId = 'fp_' + i;
+      fixedPairsMap[fpId] = {
+        id: fpId,
+        p1Id: pp.p1Id,
+        p2Id: pp.p2Id || null,
+        name: pp.p1name + (pp.p2name ? '+' + pp.p2name : ''),
+        opponentHistory: [],
+        vuelta: 1
+      };
+    });
+  }
+
+  // Resolve scorers now that we have all players
+  const allPlayersMap = data.players || {};
+  Object.values(tablesMap).forEach(tbl => {
+    const allTblPids = [...tbl.p1Ids, ...tbl.p2Ids];
+    const scorer = findBestScorer(allTblPids, allPlayersMap, allPlayersMap);
+    if (scorer) {
+      tbl.scorers = [scorer];
+      tbl.scorerPending = false;
+    } else {
+      tbl.scorers = [];
+      tbl.scorerPending = true;
+    }
+  });
+
+  const updates = { tables: tablesMap, status: 'playing', waitingQueue, ...playerStatusUpdates };
+  if (Object.keys(fixedPairsMap).length) updates['fixedPairs'] = fixedPairsMap;
+  await roomRef.update(updates);
+  toast('¡Torneo iniciado!', 'ok');
+}
+
+/* ══ FIREBASE LISTENER ══ */
+function listenRoom(){
+  if(roomListener) roomRef.off('value',roomListener);
+  roomListener=roomRef.on('value',snap=>{
+    if(!snap.exists()){leaveRoomLocal();return;}
+    const data=snap.val();
+    const players=data.players||{};
+    const tables=data.tables||{};
+    const pairs=data.pairs||{};
+
+    renderLobbyPlayers(players);
+    if(data.cfg) Object.assign(cfg,data.cfg);
+
+    // Sync tournament name input
+    const nameIn=document.getElementById('tournamentNameIn');
+    if(nameIn && data.tournamentName && !nameIn._userEditing) nameIn.value=data.tournamentName;
+
+    // Sync tables display (all instances)
+    const td=document.getElementById('tablesDisplay');
+    if(td) td.textContent=data.cfg?.tables||cfg.tables||1;
+    const htd=document.getElementById('hostTablesDisplay');
+    if(htd) htd.textContent=data.cfg?.tables||cfg.tables||1;
+
+    if(!document.getElementById('bnav').classList.contains('show')){
+      document.getElementById('bnav').classList.add('show');
+      if(isHost){ show('nHost'); show('nTable'); show('nGame'); }
+      else { show('nTable'); show('nGame'); }
+      goNav(isHost?'host':'game');
+    }
+    if(isHost) renderHostView(data,players,tables);
+    // Always render game + scorer for any player with a table
+    var hasActive = Object.values(tables).some(function(t){ return t.status&&t.status!=='idle'; });
+    if(data.status==='playing'||hasActive) {
+      if(!isHost) renderGameView(data,players,tables,pairs);
+      renderScorerView(data,players,tables);
+      renderTableView(players,tables,pairs);
+    } else if(!isHost) {
+      renderGameView(data,players,tables,pairs);
+    }
+  });
+}
+
+function findMyTable(tables,pid){
+  return Object.values(tables).find(t=>
+    (t.p1Ids||[]).includes(pid)||(t.p2Ids||[]).includes(pid)||
+    (t.scorers||[]).includes(pid)
+  )||null;
+}
+
+/* ══ GAME VIEW (jugador/espectador) ══ */
+function updateMesaHeader(table, players) {
+  var el = document.getElementById('mesaHeader');
+  if(!el) return;
+  if(!table) { el.style.display='none'; return; }
+  var scorerId = (table.scorers||[])[0];
+  var scorerName = scorerId && players[scorerId] ? players[scorerId].name : '?';
+  var status = table.status||'lobby';
+  el.style.display = '';
+  el.innerHTML =
+    '<strong>M'+table.number+' · '+table.pair1name+' vs '+table.pair2name+'</strong>' +
+    '<span style="color:var(--text3);margin:0 8px;">|</span>' +
+    'Anotador: <strong style="color:var(--t1);">'+scorerName+'</strong>' +
+    '<span style="color:var(--text3);margin:0 8px;">|</span>' +
+    'Mano '+(table.handNumber||1)+
+    '  <span class="tag '+statusTag(status)+'" style="font-size:10px;">'+statusText(status)+'</span>';
+}
+
+
+function updateActionBar(mode, extra) {
+  var bar = document.getElementById('actionBar');
+  if(!bar) return;
+  bar.innerHTML = '';
+  bar.className = 'action-bar';
+  if(!mode) return;
+  // Show on host tab for pre-game, on game tab for all others
+  var onGame = document.getElementById('sGame').classList.contains('active');
+  var onHost = document.getElementById('sHost').classList.contains('active');
+  if((mode === 'pre-game' && onHost) || (mode !== 'pre-game' && onGame)) {
+    bar.classList.add('show');
+  }
+  if(mode === 'pre-game') {
+    bar.innerHTML = '<button class="btn btn-accent btn-full" style="font-size:15px;" onclick="hostStartFromPanel()">Iniciar torneo</button>';
+  } else if(mode === 'lobby') {
+    var forceBtn = isHost || (extra && extra.amScorer) ? '<button class="btn btn-ghost btn-sm" id="forceStartBtn" onclick="forceStart()">Iniciar ahora</button>' : '';
+    bar.innerHTML = '<div style="display:flex;gap:8px;">' +
+      '<button class="btn btn-grn" style="flex:1;" onclick="markReady()">✓ Estoy listo</button>' +
+      forceBtn + '</div>';
+  } else if(mode === 'confirm-hand') {
+    bar.innerHTML = '<button class="btn btn-grn btn-full" style="font-size:15px;" onclick="confirmHand()">Finalizar mano →</button>';
+  } else if(mode === 'next-hand') {
+    bar.innerHTML = '<button class="btn btn-accent btn-full" style="font-size:15px;padding:13px;" onclick="nextHand()">▶ Siguiente mano</button>';
+  } else if(mode === 'start-game') {
+    bar.innerHTML = '<button class="btn btn-grn btn-full" style="font-size:15px;" onclick="forceStart()">▶ Iniciar juego</button>';
+  } else if(mode === 'game-over') {
+    bar.innerHTML = '<div class="small muted center" style="padding:8px 0;">Las nuevas parejas se asignan automáticamente...</div>';
+  }
+}
+
+function renderGameView(data,players,tables,pairs){
+  const me=players[myId];
+  const myTable=findMyTable(tables,myId);
+  // For free scorers: find their assigned table via scorers list
+  const scorerTable = myTable || Object.values(tables).find(t=>(t.scorers||[]).includes(myId)) || null;
+
+  // Reset scorer state when the assigned table changes OR when the same table restarts
+  const newTableId = scorerTable?.id||null;
+  const newHandNumber = scorerTable?.handNumber||1;
+  const tableRestarted = newTableId === myTableId && newHandNumber === 1 && lastKnownHandNumber > 1;
+  if(newTableId !== myTableId || tableRestarted) {
+    myTableId = newTableId;
+    lastKnownHandNumber = 0;
+    pendingWinner = null; handWinner = null; juegoCerrado = false;
+    pendingFaultMode = false; faultSelectedType = null;
+    playerPoints = {}; numBuf = '';
+  }
+
+  hide('stWaiting');hide('stLobby');hide('stPlaying');
+
+  if(!me){return;}
+
+  // Free scorer (not a player in any table) — route based on scorer table status
+  if(!myTable && scorerTable){
+    const st=scorerTable.status;
+    if(st==='lobby'){
+      show('stLobby');
+      renderLobbyView(scorerTable,players,data.cfg||cfg);
+    } else if(st==='playing'||st==='scoring'||st==='post_hand'){
+      show('stPlaying');
+      renderPlayingView(scorerTable,players,data.cfg||cfg);
+    } else if(st==='done'){
+      show('stWaiting');
+      renderWaitingView(data,players,tables);
+    }
+    return;
+  }
+
+  // No table found OR player is available and in waiting queue → show waiting
+  if(!myTable || me.status==='available'){
+    show('stWaiting');
+    renderWaitingView(data,players,tables);
+    return;
+  }
+
+  if(myTable.status==='done'){
+    show('stWaiting');
+    renderWaitingView(data,players,tables);
+    return;
+  }
+
+  if(myTable.status==='lobby'){
+    show('stLobby');
+    renderLobbyView(myTable,players,data.cfg||cfg);
+    return;
+  }
+
+  if(myTable.status==='playing'||myTable.status==='scoring'||myTable.status==='post_hand'){
+    show('stPlaying');
+    renderPlayingView(myTable,players,data.cfg||cfg);
+    return;
+  }
+
+  if(myTable.status==='done'){
+    show('stWaiting');
+    renderWaitingView(data,players,tables);
+    return;
+  }
+}
+
+function renderWaitingView(data,players,tables){
+  const active=Object.values(tables).filter(t=>t.status!=='done'&&t.status!=='idle');
+  const queue=data.waitingQueue||[];
+
+  document.getElementById('waitingMesas').innerHTML=active.length
+    ? active.map(t=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--grn);animation:pulse 2s infinite;display:inline-block;flex-shrink:0;"></span>
+          <span style="flex:1;">Mesa ${t.number} · ${t.pair1name} vs ${t.pair2name}</span>
+          <span class="tag tg-grn small">${t.scoreA}–${t.scoreB}</span>
+        </div>`).join('')
+    : '<div class="small muted">Sin mesas activas</div>';
+
+  document.getElementById('waitingQueue').innerHTML=queue.length
+    ? queue.map(pid=>{const p=players[pid];return p?`<span class="queue-chip">${p.name}</span>`:''}).join('')
+    : '<div class="small muted">Solo tú estás esperando</div>';
+
+}
+
+function renderLobbyView(table,players,c){
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const ready=table.readyPlayers||{};
+  const amScorer=(table.scorers||[]).includes(myId);
+  const scorerId=table.scorers?.[0];
+  const scorer=scorerId?players[scorerId]:null;
+  const scorerReady=!!(scorerId&&(table.scorerAccepted||{})[scorerId]);
+
+  updateMesaHeader(table, players);
+
+  function readyCol(pids, label, clr) {
+    const rows = pids.map(pid=>{
+      const p=players[pid]; if(!p) return '';
+      const isReady=!!ready[pid]||(p&&p.offline);
+      const isScorer=(table.scorers||[]).includes(pid);
+      const nameColor=(!p.offline&&p.online)?'color:var(--t1);font-weight:700;':'';
+      return `<div class="ready-row" style="padding:5px 0;">
+        <span style="flex:1;font-size:12px;${nameColor}">${p.name}${isScorer?' <span class="tag tg-t1" style="font-size:9px;">anot</span>':''}</span>
+        <span class="tag ${isReady?'tg-grn':'tg-gray'}" style="font-size:10px;">${isReady?'Listo':'Esp'}</span>
+      </div>`;
+    }).join('');
+    return `<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--${clr});margin-bottom:4px;">${label}</div>${rows}</div>`;
+  }
+  document.getElementById('readyList').innerHTML =
+    readyCol(table.p1Ids||[], table.pair1name||'', 't1') +
+    readyCol(table.p2Ids||[], table.pair2name||'', 't2');
+
+  // Scorer status row — simple waiting indicator
+  const scorerRowEl = document.getElementById('lobbyScorerow');
+  if(scorerRowEl) {
+    scorerRowEl.innerHTML=`<div style="font-size:11px;color:var(--text3);padding:4px 0;text-align:center;letter-spacing:.04em;">Esperando inicio de juego…</div>`;
+  }
+
+  // Auto-start only when scorer accepted AND all players ready
+  const allReady=allPids.length>0&&allPids.every(pid=>!!ready[pid]||(players[pid]&&players[pid].offline));
+  if(allReady && scorerReady && myTableId) { startHand(myTableId); return; }
+  updateActionBar('lobby', {amScorer: amScorer});
+
+}
+
+function renderPlayingView(table,players,c){
+  const goal=+(c.points||cfg.points||100);
+  // My team on the left
+  const amInP2=(table.p2Ids||[]).includes(myId)||(!(table.p1Ids||[]).includes(myId)&&(table.scorers||[]).includes(myId)&&false);
+  const flip = (table.p2Ids||[]).includes(myId);
+  const nameL=flip?table.pair2name:table.pair1name;
+  const nameR=flip?table.pair1name:table.pair2name;
+  const scoreL=flip?(table.scoreB||0):(table.scoreA||0);
+  const scoreR=flip?(table.scoreA||0):(table.scoreB||0);
+  const clrL=flip?'t2':'t1';
+  const clrR=flip?'t1':'t2';
+  const pctL=Math.min(100,Math.round((scoreL/goal)*100));
+  const pctR=Math.min(100,Math.round((scoreR/goal)*100));
+  const fmtNames=(n)=>n.split('+').map(s=>`<div>${s.trim()}</div>`).join('');
+  document.getElementById('playingScoreCols').innerHTML=`
+    <div class="sc s1" style="background:var(--${clrL}bg);border-color:var(--${clrL}b);">
+      <div class="sc-label c1" style="color:var(--${clrL});line-height:1.4;text-transform:none;letter-spacing:0;font-size:12px;">${fmtNames(nameL)}</div>
+      <div class="sc-pts c1" style="color:var(--${clrL});">${scoreL}</div>
+      <div class="prog"><div class="prog-fill" style="width:${pctL}%;background:var(--${clrL});"></div></div>
+      <div class="sc-meta">de ${goal}</div>
+    </div>
+    <div class="sc s2" style="background:var(--${clrR}bg);border-color:var(--${clrR}b);">
+      <div class="sc-label c2" style="color:var(--${clrR});line-height:1.4;text-transform:none;letter-spacing:0;font-size:12px;">${fmtNames(nameR)}</div>
+      <div class="sc-pts c2" style="color:var(--${clrR});">${scoreR}</div>
+      <div class="prog"><div class="prog-fill" style="width:${pctR}%;background:var(--${clrR});"></div></div>
+      <div class="sc-meta">de ${goal}</div>
+    </div>`;
+  updateMesaHeader(table, players);
+  if(!((table.scorers||[]).includes(myId))) updateActionBar(null);
+}
+
+/* ══ SCORER ASSIGNMENT HELPERS ══ */
+/**
+ * Find the best scorer candidate for a table.
+ * Priority: 1) dedicated scorer (role=scorer_dedicated) online and free
+ *           2) online player already in the table
+ *           3) online free player (available, not in another table)
+ * Returns playerId string or null.
+ */
+function findBestScorer(tablePids, players, allPlayers) {
+  // 1) Dedicated scorer online + not playing
+  const dedicated = Object.values(allPlayers).find(p =>
+    p.role === 'scorer_dedicated' && p.online && !p.offline && p.status !== 'abandoned'
+  );
+  if (dedicated) return dedicated.id;
+
+  // 2) Online player in the table
+  const inTable = tablePids.find(pid => {
+    const p = players[pid]; return p && p.online && !p.offline;
+  });
+  if (inTable) return inTable;
+
+  // 3) Online free player (available)
+  const freePid = Object.values(allPlayers).find(p =>
+    p.online && !p.offline && p.status === 'available' && p.role !== 'spectator' && p.status !== 'abandoned'
+  );
+  if (freePid) return freePid.id;
+
+  return null; // no scorer available
+}
+
+/**
+ * Build list of scorer candidates for a given table:
+ * all online non-offline players (in table OR free/dedicated).
+ */
+function getScorerCandidates(tablePids, players, allPlayers) {
+  const candidates = [];
+  const seen = new Set();
+
+  // Dedicated first
+  Object.values(allPlayers).forEach(p => {
+    if (p.role === 'scorer_dedicated' && p.online && !p.offline && p.status !== 'abandoned') {
+      if (!seen.has(p.id)) { candidates.push({...p, _source:'dedicated'}); seen.add(p.id); }
+    }
+  });
+  // In-table online
+  tablePids.forEach(pid => {
+    const p = allPlayers[pid];
+    if (p && p.online && !p.offline && !seen.has(pid)) {
+      candidates.push({...p, _source:'table'}); seen.add(pid);
+    }
+  });
+  // Free online
+  Object.values(allPlayers).forEach(p => {
+    if (p.online && !p.offline && p.status === 'available' && p.role !== 'spectator' && p.status !== 'abandoned' && !seen.has(p.id)) {
+      candidates.push({...p, _source:'free'}); seen.add(p.id);
+    }
+  });
+  return candidates;
+}
+
+function scorerSourceLabel(src) {
+  return src === 'dedicated' ? 'Anotador dedicado' : src === 'table' ? 'Jugador en mesa' : 'Jugador libre';
+}
+
+
+function updateScorerBadge(show) {
+  const badge = document.getElementById('nGameBadge');
+  if (!badge) return;
+  badge.classList.toggle('hidden', !show);
+}
+
+function renderScorerView(data,players,tables){
+  const myTable=findMyTable(tables,myId);
+  const allPlayers=players;
+
+  // Find any table where I'm listed as scorer (may be free player acting as scorer)
+  const tableAsScorer = Object.values(tables).find(t => (t.scorers||[]).includes(myId));
+  const effectiveTable = myTable || tableAsScorer;
+
+  if(!effectiveTable){ hide('scorerSection'); hide('scorerPendingPanel'); updateScorerBadge(false); return; }
+
+  const allPids=[...(effectiveTable.p1Ids||[]),...(effectiveTable.p2Ids||[])];
+  const onlinePids=allPids.filter(pid=>{ const p=players[pid]; return p&&p.online&&!p.offline; });
+  const soloOnline=onlinePids.length===1&&onlinePids[0]===myId;
+
+  // Auto-assign + accept when only online player in the table
+  if(soloOnline && myTable){
+    if(!(effectiveTable.scorers||[]).includes(myId))
+      roomRef.child('tables/'+effectiveTable.id+'/scorers').set([myId]);
+    if(!effectiveTable.scorerAccepted?.[myId])
+      roomRef.child('tables/'+effectiveTable.id+'/scorerAccepted/'+myId).set(true);
+  }
+
+  // If table has scorerPending flag and I'm a candidate (but not assigned) → show selector
+  if(effectiveTable.scorerPending && !((effectiveTable.scorers||[]).includes(myId))){
+    const candidates=getScorerCandidates(allPids,players,allPlayers);
+    const amCandidate=candidates.some(c=>c.id===myId);
+    if(amCandidate){
+      const onGame = document.getElementById('sGame').classList.contains('active');
+      updateScorerBadge(!onGame);
+      show('scorerSection');
+      hide('scorerAccept'); hide('scorerRegister'); hide('scorerPostHand'); hide('scorerConflict'); hide('scorerConfirmedStrip'); hide('scorerAssignedCard');
+      show('scorerPendingPanel');
+      renderScorerCandidateList(effectiveTable,players,allPlayers);
+      return;
+    }
+  }
+
+  const amScorer=(effectiveTable.scorers||[]).includes(myId);
+  if(!amScorer){ hide('scorerSection'); return; }
+
+  // Always sync myTableId to the effective table
+  myTableId = effectiveTable.id;
+
+  // Badge on Mesa tab when scorer has action pending but is viewing another tab
+  const onGameNow = document.getElementById('sGame').classList.contains('active');
+  updateScorerBadge(!onGameNow);
+
+  show('scorerSection');
+  hide('scorerAccept');hide('scorerRegister');hide('scorerPostHand');hide('scorerConflict');hide('scorerPendingPanel');hide('scorerConfirmedStrip');hide('scorerAssignedCard');
+
+  const c=data.cfg||cfg;
+  const accepted=soloOnline||!!(effectiveTable.scorerAccepted||{})[myId];
+
+  // LOBBY
+  if(effectiveTable.status==='lobby'){
+    show('stLobby'); hide('stWaiting'); hide('stPlaying');
+    renderLobbyView(effectiveTable,players,c);
+
+    const amInTable = (effectiveTable.p1Ids||[]).includes(myId) || (effectiveTable.p2Ids||[]).includes(myId);
+
+    if(amInTable){
+      // In-table scorer: needs to confirm role
+      if(!accepted){
+        show('scorerAccept'); hide('scorerConfirmedStrip');
+        document.getElementById('scorerAcceptTitle').textContent='Eres el anotador propuesto';
+        document.getElementById('scorerAcceptSub').textContent=
+          `Mesa ${effectiveTable.number} · ${effectiveTable.pair1name} vs ${effectiveTable.pair2name}`;
+        return;
+      }
+      hide('scorerAccept'); hide('scorerConfirmedStrip');
+      show('scorerAssignedCard');
+      document.getElementById('scorerAssignedTitle').textContent='Mesa '+effectiveTable.number;
+      document.getElementById('scorerAssignedLabel').textContent='Ha sido asignado como anotador a tu mesa:';
+      // Auto-start if all ready
+      const _ready=effectiveTable.readyPlayers||{};
+      const _allReady=allPids.length>0&&allPids.every(pid=>!!_ready[pid]||(players[pid]&&players[pid].offline));
+      if(_allReady&&accepted&&myTableId){ startHand(myTableId); return; }
+      return;
+    } else {
+      // Free/dedicated scorer: big assigned card + change button, action = "Iniciar juego"
+      hide('scorerAccept'); hide('scorerConfirmedStrip'); hide('scorerAssignedCard');
+      show('scorerAssignedCard');
+      document.getElementById('scorerAssignedTitle').textContent='Mesa '+effectiveTable.number;
+      document.getElementById('scorerAssignedLabel').innerHTML='Ha sido asignado como <strong style="color:var(--t1);">anotador</strong> a la';
+      updateActionBar('start-game');
+      return;
+    }
+  }
+
+  hide('scorerAccept'); hide('scorerConfirmedStrip'); hide('scorerAssignedCard');
+
+  // PLAYING / SCORING — show score card + scorer register
+  if(effectiveTable.status==='playing'||effectiveTable.status==='scoring'){
+    show('stPlaying'); hide('stLobby'); hide('stWaiting');
+    renderPlayingView(effectiveTable,players,c);
+    show('scorerRegister');
+    const currentHand = effectiveTable.handNumber || 1;
+    if(currentHand !== lastKnownHandNumber) {
+      lastKnownHandNumber = currentHand;
+      pendingWinner = null; handWinner = null; juegoCerrado = false;
+      pendingFaultMode = false; faultSelectedType = null;
+      playerPoints = {}; numBuf = '';
+    }
+    renderScorerRegister(effectiveTable,players,c);
+    return;
+  }
+
+  // POST HAND / DONE
+  if(effectiveTable.status==='post_hand'||effectiveTable.status==='done'){
+    show('stPlaying'); hide('stLobby'); hide('stWaiting');
+    renderPlayingView(effectiveTable,players,c);
+    show('scorerPostHand');
+    renderPostHand(effectiveTable,players,c);
+    return;
+  }
+
+  if(effectiveTable.status==='conflict'){
+    show('stPlaying'); hide('stLobby'); hide('stWaiting');
+    show('scorerConflict');
+    renderConflictView(effectiveTable,players);
+    return;
+  }
+}
+
+function renderScorerRegister(table,players,c){
+  const goal=+(c.points||cfg.points||100);
+
+  // ── Selector de jugadores ──
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const allHavePts=juegoCerrado&&allPids.every(pid=>playerPoints[pid]!=null);
+
+  // My team on the left
+  const amInP2=(table.p2Ids||[]).includes(myId);
+  const leftIds  = amInP2 ? table.p2Ids : table.p1Ids;
+  const rightIds = amInP2 ? table.p1Ids : table.p2Ids;
+  const leftTeam = amInP2 ? 'B' : 'A';
+  const rightTeam= amInP2 ? 'A' : 'B';
+  const leftLabel= '';
+  const rightLabel= '';
+  const leftClr  = 't1';   // always highlight my team as t1 (left)
+  const rightClr = 't2';
+
+  const buildPlayerCol=(pids,teamLabel,colorVar,team)=>`
+    <div class="col-team">
+      <div class="col-team-label" style="color:var(--${colorVar})">${teamLabel}</div>
+      ${(pids||[]).map(pid=>{
+        const p=players[pid]; if(!p) return '';
+        const pts=playerPoints[pid];
+        const isWin=!juegoCerrado&&handWinner&&pid===handWinner.playerId;
+        const isPending=pendingWinner&&pid===pendingWinner.playerId;
+        const extraClass=isPending?'selected-pending':'';
+        const winIcon=isWin?'🏆 ':'';
+        const nameColor=(!p.offline&&p.online)?`color:var(--${colorVar});font-weight:700;`:'';
+        const label=pts!=null?`${winIcon}${p.name} · ${pts}pts`:`${winIcon}${p.name}`;
+        return `<button class="player-btn ${extraClass}" style="${nameColor}"
+          onclick="selectHandPlayer('${team}','${pid}')">${label}</button>`;
+      }).join('')}
+    </div>`;
+
+  document.getElementById('scorerPlayerCols').innerHTML=
+    buildPlayerCol(leftIds, leftLabel, leftClr, leftTeam)+
+    buildPlayerCol(rightIds, rightLabel, rightClr, rightTeam);
+
+  // ── Strip ──
+  if(juegoCerrado){
+    renderCerradoStrip(table,players);
+  } else {
+    renderSelectedPlayerStrip(players);
+  }
+
+  // ── Botón finalizar mano ──
+  const hasNum = numBuf !== '' || Object.values(playerPoints).some(v => v != null);
+  const canFinish = juegoCerrado
+    ? allHavePts
+    : pendingFaultMode
+      ? !!(handWinner && faultSelectedType)
+      : !!(handWinner && hasNum);
+  updateActionBar(canFinish ? 'confirm-hand' : null);
+
+  const numCard=document.getElementById('scorerPointsCard');
+  const faultCard=document.getElementById('scorerFaultCatalog');
+  if(pendingWinner&&!pendingFaultMode){
+    numCard.classList.remove('hidden');
+    faultCard.classList.add('hidden');
+    buildNumpad();
+    var ni=document.getElementById('numNative'); if(ni) ni.value=numBuf||'';
+  } else if(pendingFaultMode){
+    numCard.classList.add('hidden');
+    faultCard.classList.remove('hidden');
+    renderFaultCatalog(table,players);
+  } else {
+    numCard.classList.add('hidden');
+    faultCard.classList.add('hidden');
+  }
+}
+
+function renderPostHand(table,players,c){
+  const goal=+(c.points||cfg.points||100);
+  const pct1=Math.min(100,Math.round(((table.scoreA||0)/goal)*100));
+  const pct2=Math.min(100,Math.round(((table.scoreB||0)/goal)*100));
+  const gameOver=table.status==='done';
+  const statusEl=document.getElementById('scorerPostStatus');
+
+  updateMesaHeader(table, players);
+
+  if(statusEl){
+    if(gameOver){
+      const winName=table.gameResult?table.gameResult.winnerPair:'?';
+      const vtType=table.gameResult?table.gameResult.victoryType:'single';
+      const vtLabel=vtType==='zapato'?'Zapato 🦆':vtType==='double'?'Victoria doble':'Victoria sencilla';
+      statusEl.innerHTML=`<div style="text-align:center;padding:8px 0;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;">🏆 ${winName}</div>
+        <span class="vbadge ${vbClass(vtType)}">${vtLabel}</span>
+      </div>`;
+      statusEl.className='card ok';
+      updateActionBar('game-over');
+    } else {
+      statusEl.innerHTML=`
+        <div style="text-align:center;padding:20px 8px;">
+          <div style="font-size:48px;margin-bottom:10px;">🀱</div>
+          <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Haciendo la sopa</div>
+          <div style="font-size:13px;color:var(--text2);">Mano ${(table.handNumber||1)-1} completada · preparando siguiente</div>
+        </div>`;
+      statusEl.className='card';
+      updateActionBar('next-hand');
+    }
+  }
+}
+function toggleJuegoCerrado(){
+  juegoCerrado=!juegoCerrado;
+  handWinner=null; pendingWinner=null; pendingFaultMode=false; faultSelectedType=null; numBuf='';
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(ps=>{
+      renderScorerRegister(snap.val()||{},ps.val()||{},cfg);
+    });
+  });
+}
+
+function renderCerradoStrip(table,players){
+  const strip=document.getElementById('selectedPlayerStrip');
+  if(!strip) return;
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const registered=allPids.filter(pid=>playerPoints[pid]!=null);
+  const remaining=allPids.length-registered.length;
+  const ptsA=(table.p1Ids||[]).reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+  const ptsB=(table.p2Ids||[]).reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+  const teamAname=table.pair1name||'Equipo A';
+  const teamBname=table.pair2name||'Equipo B';
+  strip.innerHTML=
+    '<div style="background:var(--purbg);border:1px solid var(--purb);border-radius:var(--rsm);padding:8px 12px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
+        '<span style="font-size:11px;font-weight:700;color:var(--pur);letter-spacing:.06em;text-transform:uppercase;">🔒 Juego Cerrado</span>'+
+        '<button class="btn btn-ghost btn-sm" onclick="toggleJuegoCerrado()" style="padding:3px 8px;font-size:11px;">✕ Cancelar</button>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;font-size:12px;margin-bottom:4px;">'+
+        '<span style="flex:1;color:var(--t1);">'+(ptsA>0?teamAname+': '+ptsA+' pts':'—')+'</span>'+
+        '<span style="flex:1;color:var(--t2);">'+(ptsB>0?teamBname+': '+ptsB+' pts':'—')+'</span>'+
+      '</div>'+
+      (remaining>0?'<div class="small muted">Faltan '+remaining+' jugador(es)</div>':
+        '<div class="small" style="color:var(--grn);">✓ Todos registrados — gana '+
+          (ptsA<ptsB?'<strong>'+teamAname+'</strong>':ptsA>ptsB?'<strong>'+teamBname+'</strong>':'Empate')+
+        '</div>')+
+    '</div>';
+}
+
+function renderSelectedPlayerStrip(players){
+  const strip=document.getElementById('selectedPlayerStrip');
+  if(!strip) return;
+  if(!handWinner){
+    strip.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;">
+        <span class="small muted" style="flex:1;">Selecciona al jugador que terminó la mano</span>
+        <button class="btn btn-sm" onclick="toggleJuegoCerrado()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔒 Juego Cerrado</button>
+      </div>`;
+    return;
+  }
+  const p=players[handWinner.playerId];
+  strip.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;
+      background:var(--grnbg);border:1px solid var(--grnb);border-radius:var(--rsm);">
+      <div class="av" style="${avStyle(p?.name||'?')};width:28px;height:28px;font-size:10px;">${avLetters(p?.name||'?')}</div>
+      <span style="flex:1;font-size:13px;font-weight:600;">${p?.name||'?'} · terminó la mano</span>
+      <button class="btn btn-red btn-sm" onclick="openFaultFromStrip()" style="padding:5px 10px;font-size:11px;">⚠ Falta</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearHandPlayer()" style="padding:5px 8px;font-size:14px;">✕</button>
+    </div>`;
+}
+
+function renderFaultCatalog(table,players){
+  const cat=document.getElementById('faultCatalogInner');
+  if(!cat) return;
+  if(!faultSelectedType){
+    cat.innerHTML=`
+      <div class="lbl">Tipo de falta</div>
+      ${FAULTS.map(f=>`
+        <div class="fault-item" onclick="selectFaultInline('${f.id}',this)">
+          <span class="fault-icon">⚠️</span>
+          <div style="flex:1;"><div class="fault-text">${f.text}</div><div class="small muted">${f.desc}</div></div>
+          <span class="fault-pts">+25 pts</span>
+        </div>`).join('')}`;
+  } else {
+    const fault=FAULTS.find(f=>f.id===faultSelectedType);
+    const faulter=pendingWinner?players[pendingWinner.playerId]:null;
+    const winTeam=pendingWinner?.team==='A'?'B':'A';
+    const winName=winTeam==='A'?table?.pair1name:table?.pair2name;
+    cat.innerHTML=`
+      <div style="background:var(--redbg);border:1px solid var(--redb);border-radius:var(--rsm);padding:10px 12px;margin-bottom:8px;">
+        <div class="small" style="color:var(--red);font-weight:600;margin-bottom:4px;">⚠ Falta: ${fault?.text||'—'}</div>
+        <div class="small muted">Cometida por: <strong style="color:var(--text)">${faulter?.name||'—'}</strong></div>
+      </div>
+      <div style="background:var(--grnbg);border:1px solid var(--grnb);border-radius:var(--rsm);padding:10px 12px;margin-bottom:8px;">
+        <div class="small" style="color:var(--grn);font-weight:600;">+25 pts → ${winName}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearFaultType()" style="width:100%;">← Cambiar tipo de falta</button>`;
+  }
+}
+
+function selectFaultInline(id,el){
+  faultSelectedType=id;
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+function clearFaultType(){
+  faultSelectedType=null;
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderFaultCatalog(snap.val(),pSnap.val()||{});
+    });
+  });
+}
+
+function selectHandPlayer(team,playerId){
+  // Auto-save points for current pending player before switching
+  if(pendingWinner&&pendingWinner.playerId!==playerId&&numBuf!==''){
+    playerPoints[pendingWinner.playerId]=parseInt(numBuf||'0');
+    numBuf='';
+  }
+  if(juegoCerrado){
+    // In juego cerrado: just select player for point input, no winner locking
+    pendingWinner={team,playerId};
+    numBuf=playerPoints[playerId]!=null?String(playerPoints[playerId]):'';
+  } else if(!handWinner){
+    // First tap — lock as hand winner, show strip + numpad
+    handWinner={team,playerId};
+    pendingWinner={team,playerId};
+    pendingFaultMode=false; faultSelectedType=null; numBuf='';
+  } else if(playerId===handWinner.playerId){
+    // Tap winner again — re-open numpad for their points
+    pendingWinner={team,playerId};
+    numBuf=playerPoints[playerId]!=null?String(playerPoints[playerId]):'';
+  } else {
+    // Tap another player — assign individual points, winner stays
+    pendingWinner={team,playerId};
+    numBuf=playerPoints[playerId]!=null?String(playerPoints[playerId]):'';
+  }
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+function clearHandPlayer(){
+  pendingWinner=null;
+  handWinner=null;
+  juegoCerrado=false;
+  pendingFaultMode=false;
+  faultSelectedType=null;
+  playerPoints={};
+  numBuf='';
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+function openFaultFromStrip(){
+  if(!handWinner){toast('Selecciona el jugador primero','err');return;}
+  pendingWinner=handWinner;
+  pendingFaultMode=true;
+  faultSelectedType=null;
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+function buildNumpad(){
+  const pad=document.getElementById('numpad');
+  if(!pad) return;
+  const keys=['1','2','3','4','5','6','7','8','9','⌫','0','✓'];
+  pad.innerHTML=keys.map(k=>{
+    const cls=k==='⌫'?'nk del':k==='✓'?'nk ok':'nk';
+    return `<div class="${cls}" onclick="numTap('${k}')">${k}</div>`;
+  }).join('');
+}
+
+function syncNativeNum(val){
+  numBuf=String(val||'').replace(/\D/g,'').slice(0,3);
+  const ni=document.getElementById('numNative'); if(ni) ni.value=numBuf;
+  const hasNum = numBuf !== '' || Object.values(playerPoints).some(v => v != null);
+  updateActionBar((handWinner && hasNum) ? 'confirm-hand' : null);
+}
+
+function numTap(k){
+  if(k==='⌫'){ numBuf=numBuf.slice(0,-1); }
+  else if(k==='✓'){ assignPlayerPoints(); return; }
+  else { if(numBuf.length<3) numBuf+=k; }
+  var _ni=document.getElementById('numNative'); if(_ni) _ni.value=numBuf||'';
+  const _hasNum = numBuf !== '' || Object.values(playerPoints).some(v => v != null);
+  updateActionBar((handWinner && _hasNum) ? 'confirm-hand' : null);
+}
+
+function assignPlayerPoints(){
+  if(pendingWinner){
+    const pts=parseInt(numBuf||'0');
+    playerPoints[pendingWinner.playerId]=pts;
+  }
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+function cancelPoints(){
+  pendingWinner=null; numBuf='';
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(pSnap=>{
+      renderScorerRegister(snap.val()||{},pSnap.val()||{},cfg);
+    });
+  });
+}
+
+async function confirmHand(){
+  const snap=await roomRef.child('tables/'+myTableId).once('value');
+  const table=snap.val(); if(!table) return;
+  const cfgSnap=await roomRef.child('cfg').once('value');
+  const c=cfgSnap.val()||cfg;
+  const goal=+(c.points||100);
+  const scorers=table.scorers||[];
+  const isDouble=scorers.length>1||c.scorer==='double';
+
+  let handResult;
+
+  if(juegoCerrado){
+    // All players must have points registered
+    const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+    if(!allPids.every(pid=>playerPoints[pid]!=null)){
+      toast('Registra los puntos de todos los jugadores','err'); return;
+    }
+    const ptsA=(table.p1Ids||[]).reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+    const ptsB=(table.p2Ids||[]).reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+    if(ptsA===ptsB){toast('Empate — ajusta los puntos','err');return;}
+    const winner=ptsA<ptsB?'A':'B';
+    const loserPts=Math.min(ptsA,ptsB);
+    handResult={
+      winner,
+      winnerId:null,
+      loserPts,
+      playerPoints:{...playerPoints},
+      juegoCerrado:true,
+      ts:Date.now()
+    };
+    juegoCerrado=false;
+  } else if(pendingFaultMode&&faultSelectedType){
+    // Fault: +25 to the OTHER team
+    const faultOnA=handWinner.team==='A';
+    handResult={
+      winner:faultOnA?'B':'A',
+      winnerId:null,
+      loserPts:25,
+      fault:true,
+      faultType:faultSelectedType,
+      faulter:handWinner.playerId,
+      ts:Date.now()
+    };
+  } else {
+    if(!handWinner){toast('Selecciona el jugador que terminó la mano','err');return;}
+    // Detect if points were registered on both teams — that's a conflict
+    const winnerTeamIds=handWinner.team==='A'?(table.p1Ids||[]):(table.p2Ids||[]);
+    const loserTeamIds=handWinner.team==='A'?(table.p2Ids||[]):(table.p1Ids||[]);
+    const hasWinnerPts=winnerTeamIds.some(pid=>playerPoints[pid]!=null&&playerPoints[pid]>0);
+    const hasLoserPts=loserTeamIds.some(pid=>playerPoints[pid]!=null&&playerPoints[pid]>0);
+    if(hasWinnerPts&&hasLoserPts){
+      toast('Puntos en ambos equipos — resuelve el conflicto','err');
+      showBothSidesConflict(table,handWinner,winnerTeamIds,loserTeamIds);
+      return;
+    }
+    // Total loser points: sum of loser team breakdown or numBuf total
+    const loserPtsFromBreakdown=loserTeamIds.reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+    const loserPts=loserPtsFromBreakdown>0?loserPtsFromBreakdown:parseInt(numBuf||'0');
+    handResult={
+      winner:handWinner.team,
+      winnerId:handWinner.playerId,
+      loserPts,
+      playerPoints:{...playerPoints},
+      ts:Date.now()
+    };
+  }
+
+  if(isDouble){
+    await roomRef.child('tables/'+myTableId+'/pendingScores/'+myId).set(handResult);
+    const pendingSnap=await roomRef.child('tables/'+myTableId+'/pendingScores').once('value');
+    const pending=pendingSnap.val()||{};
+    if(Object.keys(pending).length>=scorers.length){
+      await checkConflict(myTableId,table,pending,c,goal);
+    } else {
+      toast('Registro guardado. Esperando al otro anotador…','ok');
+    }
+  } else {
+    await applyHandResult(myTableId,table,handResult,c,goal);
+  }
+
+  pendingWinner=null; pendingFaultMode=false; faultSelectedType=null;
+  playerPoints={}; numBuf='';
+}
+
+async function checkConflict(tid,table,pending,c,goal){
+  const vals=Object.values(pending);
+  const allSame=vals.every(v=>v.winner===vals[0].winner&&v.loserPts===vals[0].loserPts);
+  if(allSame){
+    await roomRef.child('tables/'+tid+'/pendingScores').remove();
+    await applyHandResult(tid,table,vals[0],c,goal);
+  } else {
+    await roomRef.child('tables/'+tid+'/status').set('conflict');
+    toast('Conflicto detectado. Resuelve antes de continuar.','err');
+  }
+}
+
+async function applyHandResult(tid,table,result,c,goal){
+  const isA=result.winner==='A';
+  const pointMode=(c.pointMode||cfg.pointMode||'winner');
+  // winner mode: loser's points go to the WINNER's score
+  // loser mode:  loser's points go to the LOSER's score (reaches goal = loses)
+  let newScoreA, newScoreB;
+  if(pointMode==='winner'){
+    newScoreA=(table.scoreA||0)+(isA?result.loserPts:0);
+    newScoreB=(table.scoreB||0)+(!isA?result.loserPts:0);
+  } else {
+    newScoreA=(table.scoreA||0)+(!isA?result.loserPts:0);
+    newScoreB=(table.scoreB||0)+(isA?result.loserPts:0);
+  }
+  const hand={...result,handNumber:table.handNumber||1,scoreA:newScoreA,scoreB:newScoreB};
+  const hands=[...(table.hands||[]),hand];
+  const gameOver=newScoreA>=goal||newScoreB>=goal;
+
+  const updates={};
+  updates[`tables/${tid}/scoreA`]=newScoreA;
+  updates[`tables/${tid}/scoreB`]=newScoreB;
+  updates[`tables/${tid}/hands`]=hands;
+  updates[`tables/${tid}/lastHand`]=hand;
+
+  if(gameOver){
+    updates[`tables/${tid}/status`]='done';
+    // The team that reached >=goal is the LOSER (points accumulated against them)
+    // Winner is the OTHER team
+    // Determine game winner based on pointMode
+    // winner mode: points go to winner → who reaches goal first WINS
+    // loser mode:  points go to loser  → who reaches goal first LOSES
+    let gameWinnerIsA;
+    if(pointMode==='winner'){
+      gameWinnerIsA = newScoreA >= goal; // A reached goal → A wins
+    } else {
+      gameWinnerIsA = newScoreB >= goal; // B reached goal → B is loser → A wins
+    }
+    const winnerPair = gameWinnerIsA ? table.pair1name : table.pair2name;
+    const winIds = gameWinnerIsA ? (table.p1Ids||[]) : (table.p2Ids||[]);
+    const loseIds = gameWinnerIsA ? (table.p2Ids||[]) : (table.p1Ids||[]);
+    // victoryType based on LOSER's score (what the loser accumulated)
+    const loserScore = gameWinnerIsA ? newScoreB : newScoreA;
+    const vtFinal = victoryType(loserScore);
+    updates[`tables/${tid}/gameResult`]={winnerPair,victoryType:vtFinal.type,pts:vtFinal.pts,ts:Date.now()};
+    updates[`tables/${tid}/lastHand`]=hand;
+    const c2=await roomRef.child('cfg').once('value').then(s=>s.val()||cfg);
+    const playersSnap=await roomRef.child('players').once('value');
+    const allPlayers=playersSnap.val()||{};
+    if((c2.scoring||cfg.scoring)==='victories'){
+      winIds.forEach(pid=>{ if(pid){ const cur=(allPlayers[pid]?.score||0); updates[`players/${pid}/score`]=cur+vtFinal.pts; }});
+      loseIds.forEach(pid=>{ if(pid){ const cur=(allPlayers[pid]?.score||0); updates[`players/${pid}/score`]=cur-vtFinal.pts; }});
+    } else {
+      const winScore = gameWinnerIsA ? newScoreA : newScoreB;
+      const loseScore = gameWinnerIsA ? newScoreB : newScoreA;
+      if(result.juegoCerrado&&result.playerPoints){
+        // Juego cerrado: each player gets their individual registered points
+        const pp=result.playerPoints;
+        [...winIds,...loseIds].forEach(pid=>{
+          if(pid&&pp[pid]!=null){
+            const cur=(allPlayers[pid]?.score||0);
+            updates[`players/${pid}/score`]=cur+pp[pid];
+          }
+        });
+      } else {
+        winIds.forEach(pid=>{ if(pid){ const cur=(allPlayers[pid]?.score||0); updates[`players/${pid}/score`]=cur+winScore; }});
+        loseIds.forEach(pid=>{ if(pid){ const cur=(allPlayers[pid]?.score||0); updates[`players/${pid}/score`]=cur+loseScore; }});
+      }
+    }
+    winIds.forEach(pid=>{ if(pid){ const cur=allPlayers[pid]||{}; updates[`players/${pid}/wins`]=(cur.wins||0)+1; updates[`players/${pid}/gamesPlayed`]=(cur.gamesPlayed||0)+1; }});
+    loseIds.forEach(pid=>{ if(pid){ const cur=allPlayers[pid]||{}; updates[`players/${pid}/losses`]=(cur.losses||0)+1; updates[`players/${pid}/gamesPlayed`]=(cur.gamesPlayed||0)+1; }});
+    // Mark players available — auto-pairing will pick them up
+    const finishedAt = Date.now();
+    [...winIds,...loseIds].forEach(pid=>{ if(pid){ updates[`players/${pid}/status`]='available'; updates[`players/${pid}/lastFinishedAt`]=finishedAt; }});
+    const hEntry={tid,pair1:table.pair1name,pair2:table.pair2name,
+      scoreA:newScoreA,scoreB:newScoreB,winner:winnerPair,victoryType:vtFinal.type,ts:Date.now()};
+    updates[`history/${Date.now()}`]=hEntry;
+    await roomRef.update(updates);
+    // Auto-trigger pairing after a short delay so Firebase settles
+    setTimeout(async()=>{
+      const freshSnap=await roomRef.once('value');
+      await runDynamicPairing(freshSnap.val());
+    },1200);
+  } else {
+    updates[`tables/${tid}/handNumber`]=(table.handNumber||1)+1;
+    updates[`tables/${tid}/status`]='post_hand';
+    updates[`tables/${tid}/lastHand`]=hand;
+    await roomRef.update(updates);
+  }
+}
+
+function showBothSidesConflict(table,winner,winnerTeamIds,loserTeamIds){
+  hide('scorerRegister');
+  show('scorerConflict');
+  updateActionBar(null);
+
+  const winnerName=winner.team==='A'?table.pair1name:table.pair2name;
+  const loserName=winner.team==='A'?table.pair2name:table.pair1name;
+  const winPts=winnerTeamIds.reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+  const losePts=loserTeamIds.reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+
+  document.getElementById('conflictCols').innerHTML=
+    '<div class="conflict-side">'+
+      '<div class="conflict-scorer" style="color:var(--grn);">🏆 '+winnerName+'</div>'+
+      '<div class="conflict-val">'+winPts+' pts registrados</div>'+
+    '</div>'+
+    '<div class="conflict-side">'+
+      '<div class="conflict-scorer">'+loserName+'</div>'+
+      '<div class="conflict-val">'+losePts+' pts registrados</div>'+
+    '</div>';
+
+  document.getElementById('conflictActions').innerHTML=
+    '<button class="btn btn-t2 btn-full" onclick="resolveBothSides(\'loser\')">'+
+      'Usar puntos del perdedor ('+losePts+' pts)'+
+    '</button>'+
+    '<button class="btn btn-ghost btn-full" onclick="resolveBothSides(\'winner\')">'+
+      'Usar puntos del ganador como perdedor ('+winPts+' pts)'+
+    '</button>'+
+    '<button class="btn btn-ghost btn-full" onclick="cancelBothSidesConflict()">'+
+      '← Corregir manualmente'+
+    '</button>';
+}
+
+async function resolveBothSides(useTeam){
+  const snap=await roomRef.child('tables/'+myTableId).once('value');
+  const table=snap.val(); if(!table) return;
+  const cfgSnap=await roomRef.child('cfg').once('value');
+  const c=cfgSnap.val()||cfg;
+  const goal=+(c.points||100);
+  const winnerTeamIds=handWinner.team==='A'?(table.p1Ids||[]):(table.p2Ids||[]);
+  const loserTeamIds=handWinner.team==='A'?(table.p2Ids||[]):(table.p1Ids||[]);
+  const sourceIds=useTeam==='loser'?loserTeamIds:winnerTeamIds;
+  const loserPts=sourceIds.reduce((s,pid)=>s+(playerPoints[pid]||0),0);
+  const handResult={
+    winner:handWinner.team,
+    winnerId:handWinner.playerId,
+    loserPts,
+    playerPoints:{...playerPoints},
+    ts:Date.now()
+  };
+  pendingWinner=null; handWinner=null; juegoCerrado=false; pendingFaultMode=false; faultSelectedType=null;
+  playerPoints={}; numBuf='';
+  hide('scorerConflict');
+  show('scorerRegister');
+  await applyHandResult(myTableId,table,handResult,c,goal);
+}
+
+function cancelBothSidesConflict(){
+  hide('scorerConflict');
+  show('scorerRegister');
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    roomRef.child('players').once('value').then(ps=>{
+      renderScorerRegister(snap.val()||{},ps.val()||{},cfg);
+    });
+  });
+}
+
+function renderConflictView(table,players){
+  const pending=table.pendingScores||{};
+  const entries=Object.entries(pending);
+  document.getElementById('conflictCols').innerHTML=entries.map(([scorerId,val])=>{
+    const scorer=players[scorerId];
+    return `<div class="conflict-side">
+      <div class="conflict-scorer">${scorer?.name||scorerId} anota</div>
+      <div class="conflict-val">Ganó ${val.winner} · ${val.loserPts} pts</div>
+    </div>`;
+  }).join('');
+
+  const actions=entries.map(([scorerId,val])=>`
+    <button class="btn btn-t2 btn-full" onclick="resolveConflict('${scorerId}')">
+      Usar registro de ${players[scorerId]?.name||scorerId}
+    </button>`).join('');
+  document.getElementById('conflictActions').innerHTML=
+    actions+`<button class="btn btn-ghost btn-full" onclick="openModal('manualResolveModal')">Corregir manualmente</button>`;
+}
+
+async function resolveConflict(scorerId){
+  const snap=await roomRef.child('tables/'+myTableId).once('value');
+  const table=snap.val(); if(!table) return;
+  const cfgSnap=await roomRef.child('cfg').once('value');
+  const c=cfgSnap.val()||cfg;
+  const goal=+(c.points||100);
+  const chosen=table.pendingScores?.[scorerId];
+  if(!chosen) return;
+  await roomRef.child('tables/'+myTableId+'/pendingScores').remove();
+  await applyHandResult(myTableId,table,chosen,c,goal);
+  toast('Conflicto resuelto','ok');
+}
+
+/* ══ FAULT HANDLING ══ */
+let faultSelectedTeam=null;
+
+function openFaultModal(){
+  faultSelectedTeam=null; faultSelectedType=null;
+  roomRef.child('tables/'+myTableId).once('value').then(snap=>{
+    const table=snap.val(); if(!table) return;
+    roomRef.child('players').once('value').then(pSnap=>{
+      const players=pSnap.val()||{};
+      document.getElementById('faultTeamSelect').innerHTML=`
+        <div class="lbl">¿Qué equipo cometió la falta?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="btn ${faultSelectedTeam==='A'?'btn-red':'btn-ghost'}" onclick="selectFaultTeam('A','${table.pair1name}',this)">
+            Equipo A<br><span class="small">${table.pair1name}</span>
+          </button>
+          <button class="btn ${faultSelectedTeam==='B'?'btn-red':'btn-ghost'}" onclick="selectFaultTeam('B','${table.pair2name}',this)">
+            Equipo B<br><span class="small">${table.pair2name}</span>
+          </button>
+        </div>`;
+      document.getElementById('faultTypeList').innerHTML=`
+        <div class="lbl" style="margin-top:10px;">Tipo de falta</div>
+        ${FAULTS.map(f=>`
+          <div class="fault-item" id="fi_${f.id}" onclick="selectFaultType('${f.id}',this)">
+            <span class="fault-icon">⚠️</span>
+            <div style="flex:1;"><div class="fault-text">${f.text}</div><div class="small muted">${f.desc}</div></div>
+            <span class="fault-pts">+25 pts</span>
+          </div>`).join('')}`;
+      openModal('faultModal');
+    });
+  });
+}
+
+function selectFaultTeam(team,name,el){
+  faultSelectedTeam=team;
+  document.querySelectorAll('#faultTeamSelect .btn').forEach(b=>{
+    b.className=b.className.replace('btn-red','btn-ghost');
+  });
+  el.className=el.className.replace('btn-ghost','btn-red');
+}
+
+function selectFaultType(id,el){
+  faultSelectedType=id;
+  document.querySelectorAll('.fault-item').forEach(fi=>fi.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function confirmFault(){
+  if(!faultSelectedTeam){toast('Selecciona el equipo','err');return;}
+  if(!faultSelectedType){toast('Selecciona el tipo de falta','err');return;}
+  closeModal('faultModal');
+  const snap=await roomRef.child('tables/'+myTableId).once('value');
+  const table=snap.val(); if(!table) return;
+  const cfgSnap=await roomRef.child('cfg').once('value');
+  const c=cfgSnap.val()||cfg;
+  const goal=+(c.points||100);
+  // Fault: +25 to the OTHER team
+  const faultOnA=faultSelectedTeam==='A';
+  const result={winner:faultOnA?'B':'A',winnerId:null,loserPts:25,fault:true,faultType:faultSelectedType};
+  await applyHandResult(myTableId,table,result,c,goal);
+  toast(`Falta registrada — +25 pts para ${faultOnA?table.pair2name:table.pair1name}`,'ok');
+}
+
+/* ══ READY / START HAND ══ */
+async function markReady(){
+  if(!myTableId) return;
+  await roomRef.child('tables/'+myTableId+'/readyPlayers/'+myId).set(true);
+  toast('¡Listo!','ok');
+}
+
+async function forceStart(){
+  if(!myTableId) return;
+  const snap=await roomRef.child('tables/'+myTableId).once('value');
+  const table=snap.val(); if(!table) return;
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const readyMap={};
+  allPids.forEach(pid=>readyMap[pid]=true);
+  // Also accept scorer role for free scorers and start immediately
+  const u={};
+  u['tables/'+myTableId+'/readyPlayers']=readyMap;
+  u['tables/'+myTableId+'/scorerAccepted/'+myId]=true;
+  u['tables/'+myTableId+'/status']='playing';
+  await roomRef.update(u);
+}
+
+async function startHand(tid){
+  const snap=await roomRef.child('tables/'+tid+'/status').once('value');
+  if(snap.val()==='playing') return;
+  await roomRef.child('tables/'+tid+'/status').set('playing');
+}
+
+async function acceptScorer(){
+  // Find my effective table (assigned or as free scorer)
+  const snap=await roomRef.once('value');
+  const data=snap.val()||{};
+  const tables=data.tables||{};
+  const myEffectiveTable = findMyTable(tables,myId) ||
+    Object.values(tables).find(t=>(t.scorers||[]).includes(myId));
+  if(!myEffectiveTable) return;
+  await roomRef.child('tables/'+myEffectiveTable.id+'/scorerAccepted/'+myId).set(true);
+  await roomRef.child('tables/'+myEffectiveTable.id+'/scorerPending').set(false);
+  myTableId=myEffectiveTable.id;
+  toast('Rol de anotador aceptado ✓','ok');
+}
+
+function openChangeScorerPanel(){
+  roomRef.once('value').then(snap=>{
+    const data=snap.val()||{};
+    const tables=data.tables||{};
+    const players=data.players||{};
+    const table = findMyTable(tables,myId) ||
+      Object.values(tables).find(t=>(t.scorers||[]).includes(myId));
+    if(!table) return;
+    const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+    renderScorerCandidateList(table,players,players,true);
+    // Show the pending panel inline
+    hide('scorerAccept'); hide('scorerConfirmedStrip'); hide('scorerAssignedCard');
+    show('scorerPendingPanel');
+    document.getElementById('scorerPendingSub').textContent='Selecciona el nuevo anotador para Mesa '+table.number;
+  });
+}
+
+function renderScorerCandidateList(table, players, allPlayers, forceShow) {
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const candidates=getScorerCandidates(allPids,players,allPlayers);
+  const currentScorerId=(table.scorers||[])[0];
+  const el=document.getElementById('scorerCandidateList');
+  if(!el) return;
+  if(!candidates.length){
+    el.innerHTML='<div class="small muted" style="padding:8px 0;text-align:center;">Sin jugadores conectados disponibles.<br>El anotador se asignará cuando alguien se conecte.</div>';
+    return;
+  }
+  el.innerHTML=candidates.map(p=>{
+    const isMe=p.id===myId;
+    const isCurrent=p.id===currentScorerId;
+    const srcLabel=scorerSourceLabel(p._source||'table');
+    return `<div class="pchip" style="cursor:pointer;margin-bottom:6px;${isCurrent?'border-color:var(--t1b);background:var(--t1bg);':''}" onclick="assignScorerFromPanel('${p.id}','${table.id}')">
+      <div class="av" style="${avStyle(p.name)}">${avLetters(p.name)}</div>
+      <div style="flex:1;">
+        <div class="pname">${p.name}${isMe?' <span class="tag tg-gray">tú</span>':''}${isCurrent?' <span class="tag tg-t1">actual</span>':''}</div>
+        <div class="pmeta">${srcLabel}</div>
+      </div>
+      ${isMe
+        ? '<button class="btn btn-grn btn-sm" style="flex-shrink:0;">✓ Yo anoto</button>'
+        : '<button class="btn btn-sm" style="flex-shrink:0;">Asignar</button>'
+      }
+    </div>`;
+  }).join('');
+}
+
+async function assignScorerFromPanel(pid, tid){
+  await roomRef.child('tables/'+tid+'/scorers').set([pid]);
+  await roomRef.child('tables/'+tid+'/scorerPending').set(false);
+  // Clear previous accepted flags — new scorer must confirm
+  await roomRef.child('tables/'+tid+'/scorerAccepted').set({});
+  hide('scorerPendingPanel');
+  const snap=await roomRef.once('value');
+  const d=snap.val()||{};
+  const p=d.players?.[pid];
+  toast((p?p.name:pid)+' asignado como anotador','ok');
+}
+
+function openTransferScorer(){
+  openChangeScorerPanel();
+}
+
+async function transferScorer(newId,tid){
+  await roomRef.child('tables/'+tid+'/scorers').set([newId]);
+  await roomRef.child('tables/'+tid+'/scorerAccepted').set({});
+  await roomRef.child('tables/'+tid+'/scorerPending').set(false);
+  closeModal('transferScorerModal');
+  toast('Anotador transferido','ok');
+}
+
+async function nextHand(){
+  if(!myTableId) return;
+  pendingWinner=null; handWinner=null; juegoCerrado=false; pendingFaultMode=false; faultSelectedType=null;
+  playerPoints={}; numBuf='';
+  // Skip lobby from hand 2 onwards — go straight to playing
+  const snap = await roomRef.once('value');
+  const d = snap.val()||{};
+  const t = (d.tables||{})[myTableId]||{};
+  const players = d.players||{};
+  const allPids = [...(t.p1Ids||[]),...(t.p2Ids||[])];
+  // Pre-mark offline players as ready so auto-start fires
+  const readyMap = {};
+  allPids.forEach(pid => { if(players[pid]?.offline) readyMap[pid]=true; });
+  const updates = {};
+  updates['tables/'+myTableId+'/status'] = 'playing';
+  updates['tables/'+myTableId+'/readyPlayers'] = readyMap;
+  // scorerAccepted NOT reset — scorer keeps role for all hands of same game
+  await roomRef.update(updates);
+}
+
+async function closeGame(){
+  // Now handled automatically — just go back to waiting view
+  if(myTableId){
+    const freshSnap=await roomRef.once('value');
+    await runDynamicPairing(freshSnap.val());
+  }
+}
+
+/* ══ DYNAMIC PAIRING ALGORITHM ══ */
+/* ── Helpers de emparejamiento ── */
+
+// Forma una pareja (2 jugadores) respetando historial y distancia en tabla.
+// Prioriza jugadores "frescos" (no vienen de una mesa activa reciente).
+// Devuelve {p1, p2} o null si no hay pareja válida sin repetir.
+function findBestPartner(candidate, pool, allowRepeat) {
+  // pool está ordenado por score desc → buscar desde el extremo opuesto para max distancia
+  for (let j = pool.length - 1; j >= 0; j--) {
+    const other = pool[j];
+    if (other.id === candidate.id) continue;
+    const hist = candidate.pairHistory || [];
+    const alreadyPlayed = hist.includes(other.id);
+    if (!alreadyPlayed || allowRepeat) return other;
+  }
+  return null;
+}
+
+// Determina si un jugador puede iniciar segunda vuelta de parejas
+// (ya jugó contra todos los disponibles)
+function needsVuelta(player, pool) {
+  const hist = player.pairHistory || [];
+  const others = pool.filter(p => p.id !== player.id);
+  return others.length > 0 && others.every(p => hist.includes(p.id));
+}
+
+async function runDynamicPairing(data) {
+  const c = data.cfg || cfg;
+  if ((c.pairs || 'dynamic') === 'fixed') {
+    return runFixedPairing(data);
+  }
+
+  const allEligible = Object.values(data.players || {}).filter(p =>
+    (p.role === 'player' || p.role === 'host_only') && p.status !== 'abandoned'
+  );
+  const freeTables = Object.values(data.tables || {}).filter(t =>
+    t.status === 'done' || t.status === 'idle'
+  );
+  if (!freeTables.length) return;
+
+  // Regla 1: priorizar jugadores que NO acaban de terminar una mesa
+  // (lastFinishedAt vacío o muy antiguo = "frescos")
+  const available = allEligible.filter(p => p.status === 'available');
+  if (available.length < 2 && freeTables.length) return; // esperar más jugadores
+
+  const now = Date.now();
+  // Ordenar: primero frescos (sin lastFinishedAt o muy antiguo), luego por score desc para max distancia
+  const sorted = [...available].sort((a, b) => {
+    const aFresh = !(a.lastFinishedAt) || (now - a.lastFinishedAt) > 30000;
+    const bFresh = !(b.lastFinishedAt) || (now - b.lastFinishedAt) > 30000;
+    if (aFresh && !bFresh) return -1;
+    if (!aFresh && bFresh) return 1;
+    return (b.score || 0) - (a.score || 0);
+  });
+
+  const used = new Set();
+  const pairs = []; // [{p1, p2}]
+
+  for (let i = 0; i < sorted.length; i++) {
+    const candidate = sorted[i];
+    if (used.has(candidate.id)) continue;
+
+    // ¿Este jugador necesita segunda vuelta? (ya jugó con todos)
+    const pool = sorted.filter(p => !used.has(p.id) && p.id !== candidate.id);
+    const inVuelta = needsVuelta(candidate, pool);
+    const partner = findBestPartner(candidate, pool, inVuelta);
+
+    if (partner) {
+      pairs.push({ p1: candidate, p2: partner });
+      used.add(candidate.id);
+      used.add(partner.id);
+    }
+    // Si no encontró pareja sin repetir → queda esperando (waitingQueue)
+  }
+
+  // Necesitamos grupos de 4 (2 parejas por mesa)
+  // Ordenar las parejas por distancia de score entre ellas (mayor distancia primero)
+  // para que la función de asignación a mesa pueda simplemente tomar de dos en dos
+  const matches = [];
+  const pairsUsed = new Set();
+  for (let i = 0; i < pairs.length && matches.length < freeTables.length; i++) {
+    if (pairsUsed.has(i)) continue;
+    // Buscar la pareja más distante en score para ser rival
+    const pair1 = pairs[i];
+    const avg1 = ((pair1.p1.score || 0) + (pair1.p2.score || 0)) / 2;
+    let bestJ = -1, bestDist = -1;
+    for (let j = i + 1; j < pairs.length; j++) {
+      if (pairsUsed.has(j)) continue;
+      const pair2 = pairs[j];
+      const avg2 = ((pair2.p1.score || 0) + (pair2.p2.score || 0)) / 2;
+      const dist = Math.abs(avg1 - avg2);
+      if (dist > bestDist) { bestDist = dist; bestJ = j; }
+    }
+    if (bestJ === -1) continue; // no hay rival
+    pairsUsed.add(i); pairsUsed.add(bestJ);
+    matches.push({ pair1, pair2: pairs[bestJ], table: freeTables[matches.length] });
+  }
+
+  if (!matches.length) return;
+
+  const updates = {};
+  const assignedIds = new Set();
+  const allPlayersList = allEligible;
+  const allIds = allPlayersList.map(p => p.id);
+
+  matches.forEach(({ pair1, pair2, table }) => {
+    const tid = table.id;
+    const p1Ids = [pair1.p1.id, pair1.p2.id];
+    const p2Ids = [pair2.p1.id, pair2.p2.id];
+    const pair1name = pair1.p1.name + '+' + pair1.p2.name;
+    const pair2name = pair2.p1.name + '+' + pair2.p2.name;
+
+    // Scorer: use priority logic (dedicated > in-table online > free online)
+    const scorerCandidates = findBestScorer([...p1Ids,...p2Ids], data.players||{}, data.players||{});
+
+    updates[`tables/${tid}/p1Ids`] = p1Ids;
+    updates[`tables/${tid}/p2Ids`] = p2Ids;
+    updates[`tables/${tid}/pair1name`] = pair1name;
+    updates[`tables/${tid}/pair2name`] = pair2name;
+    updates[`tables/${tid}/status`] = 'lobby';
+    updates[`tables/${tid}/scoreA`] = 0;
+    updates[`tables/${tid}/scoreB`] = 0;
+    updates[`tables/${tid}/hands`] = [];
+    updates[`tables/${tid}/handNumber`] = 1;
+    updates[`tables/${tid}/readyPlayers`] = {};
+    updates[`tables/${tid}/scorerAccepted`] = {};
+    updates[`tables/${tid}/scorers`] = scorerCandidates ? [scorerCandidates] : [];
+    updates[`tables/${tid}/scorerPending`] = !scorerCandidates;
+
+    // Actualizar historial de parejas y status
+    const allFour = [pair1.p1, pair1.p2, pair2.p1, pair2.p2];
+    allFour.forEach(p => {
+      updates[`players/${p.id}/status`] = 'playing';
+      assignedIds.add(p.id);
+    });
+
+    // Historial: p1.p1 ↔ p1.p2 jugaron juntos
+    const h1a = [...(pair1.p1.pairHistory || []), pair1.p2.id];
+    const h1b = [...(pair1.p2.pairHistory || []), pair1.p1.id];
+    const h2a = [...(pair2.p1.pairHistory || []), pair2.p2.id];
+    const h2b = [...(pair2.p2.pairHistory || []), pair2.p1.id];
+    updates[`players/${pair1.p1.id}/pairHistory`] = h1a;
+    updates[`players/${pair1.p2.id}/pairHistory`] = h1b;
+    updates[`players/${pair2.p1.id}/pairHistory`] = h2a;
+    updates[`players/${pair2.p2.id}/pairHistory`] = h2b;
+
+    // Vuelta: si ya jugó con todos los demás → incrementar vuelta y reset historial
+    if (h1a.length >= allIds.length - 1) { updates[`players/${pair1.p1.id}/pairVuelta`] = (pair1.p1.pairVuelta || 1) + 1; updates[`players/${pair1.p1.id}/pairHistory`] = []; }
+    if (h1b.length >= allIds.length - 1) { updates[`players/${pair1.p2.id}/pairVuelta`] = (pair1.p2.pairVuelta || 1) + 1; updates[`players/${pair1.p2.id}/pairHistory`] = []; }
+    if (h2a.length >= allIds.length - 1) { updates[`players/${pair2.p1.id}/pairVuelta`] = (pair2.p1.pairVuelta || 1) + 1; updates[`players/${pair2.p1.id}/pairHistory`] = []; }
+    if (h2b.length >= allIds.length - 1) { updates[`players/${pair2.p2.id}/pairVuelta`] = (pair2.p2.pairVuelta || 1) + 1; updates[`players/${pair2.p2.id}/pairHistory`] = []; }
+  });
+
+  // Jugadores disponibles que no encontraron pareja → waitingQueue
+  const waiting = available.filter(p => !assignedIds.has(p.id)).map(p => p.id);
+  updates['waitingQueue'] = waiting;
+
+  await roomRef.update(updates);
+  if (matches.length) toast('Nuevas parejas asignadas (' + matches.length + ' mesa' + (matches.length > 1 ? 's' : '') + ')', 'ok');
+}
+
+/* ── MODO FIJO: parejas siempre juntas, rotan rivales ── */
+async function runFixedPairing(data) {
+  // En modo fijo las parejas están definidas en data.fixedPairs[]
+  // Cada pareja tiene: id, p1Id, p2Id, name, opponentHistory[]
+  // Se enfrenta a todos antes de repetir rival.
+
+  const fixedPairs = Object.values(data.fixedPairs || {});
+  if (fixedPairs.length < 2) return;
+
+  const freeTables = Object.values(data.tables || {}).filter(t =>
+    t.status === 'done' || t.status === 'idle'
+  );
+  if (!freeTables.length) return;
+
+  // Parejas disponibles: ambos jugadores status=available
+  const players = data.players || {};
+  const availablePairs = fixedPairs.filter(fp => {
+    const p1 = players[fp.p1Id], p2 = fp.p2Id ? players[fp.p2Id] : null;
+    if (!p1) return false;
+    const p1ok = p1.status === 'available';
+    const p2ok = !fp.p2Id || (p2 && p2.status === 'available');
+    return p1ok && p2ok;
+  });
+
+  if (availablePairs.length < 2) return;
+
+  // Ordenar por score desc
+  const sorted = [...availablePairs].sort((a, b) => {
+    const scoreA = (players[a.p1Id]?.score || 0) + (players[a.p2Id || '']?.score || 0);
+    const scoreB = (players[b.p1Id]?.score || 0) + (players[b.p2Id || '']?.score || 0);
+    return scoreB - scoreA;
+  });
+
+  const used = new Set();
+  const matches = [];
+
+  for (let i = 0; i < sorted.length && matches.length < freeTables.length; i++) {
+    if (used.has(sorted[i].id)) continue;
+    const pair1 = sorted[i];
+    const oppHist = pair1.opponentHistory || [];
+    const allOppIds = sorted.filter(p => p.id !== pair1.id).map(p => p.id);
+    const inVuelta = allOppIds.every(id => oppHist.includes(id));
+
+    // Buscar rival: no repetido (o vuelta si ya jugó con todos), máxima distancia
+    let rival = null;
+    for (let j = sorted.length - 1; j > i; j--) {
+      if (used.has(sorted[j].id)) continue;
+      const alreadyPlayed = oppHist.includes(sorted[j].id);
+      if (!alreadyPlayed || inVuelta) { rival = sorted[j]; break; }
+    }
+    if (!rival) continue;
+
+    used.add(pair1.id); used.add(rival.id);
+    matches.push({ pair1, pair2: rival, table: freeTables[matches.length] });
+  }
+
+  if (!matches.length) return;
+
+  const updates = {};
+  const assignedPlayerIds = new Set();
+  const allPairIds = fixedPairs.map(p => p.id);
+
+  matches.forEach(({ pair1, pair2, table }) => {
+    const tid = table.id;
+    const p1Ids = [pair1.p1Id, pair1.p2Id].filter(Boolean);
+    const p2Ids = [pair2.p1Id, pair2.p2Id].filter(Boolean);
+    const scorerCandidates = findBestScorer([...p1Ids,...p2Ids], players, players);
+
+    updates[`tables/${tid}/p1Ids`] = p1Ids;
+    updates[`tables/${tid}/p2Ids`] = p2Ids;
+    updates[`tables/${tid}/pair1name`] = pair1.name;
+    updates[`tables/${tid}/pair2name`] = pair2.name;
+    updates[`tables/${tid}/status`] = 'lobby';
+    updates[`tables/${tid}/scoreA`] = 0;
+    updates[`tables/${tid}/scoreB`] = 0;
+    updates[`tables/${tid}/hands`] = [];
+    updates[`tables/${tid}/handNumber`] = 1;
+    updates[`tables/${tid}/readyPlayers`] = {};
+    updates[`tables/${tid}/scorerAccepted`] = {};
+    updates[`tables/${tid}/scorers`] = scorerCandidates ? [scorerCandidates] : [];
+    updates[`tables/${tid}/scorerPending`] = !scorerCandidates;
+
+    [...p1Ids, ...p2Ids].forEach(pid => { updates[`players/${pid}/status`] = 'playing'; assignedPlayerIds.add(pid); });
+
+    // Actualizar historial de rivales de las parejas
+    const oh1 = [...(pair1.opponentHistory || []), pair2.id];
+    const oh2 = [...(pair2.opponentHistory || []), pair1.id];
+    const vuelta1 = allPairIds.filter(id => id !== pair1.id).every(id => oh1.includes(id));
+    const vuelta2 = allPairIds.filter(id => id !== pair2.id).every(id => oh2.includes(id));
+    updates[`fixedPairs/${pair1.id}/opponentHistory`] = vuelta1 ? [] : oh1;
+    updates[`fixedPairs/${pair2.id}/opponentHistory`] = vuelta2 ? [] : oh2;
+    if (vuelta1) updates[`fixedPairs/${pair1.id}/vuelta`] = (pair1.vuelta || 1) + 1;
+    if (vuelta2) updates[`fixedPairs/${pair2.id}/vuelta`] = (pair2.vuelta || 1) + 1;
+  });
+
+  // Parejas no asignadas → sus jugadores siguen/van a waitingQueue
+  const waiting = [];
+  fixedPairs.forEach(fp => {
+    if (!used.has(fp.id)) {
+      [fp.p1Id, fp.p2Id].filter(Boolean).forEach(pid => {
+        if (!assignedPlayerIds.has(pid)) waiting.push(pid);
+      });
+    }
+  });
+  updates['waitingQueue'] = waiting;
+
+  await roomRef.update(updates);
+  toast('Parejas fijas asignadas (' + matches.length + ' mesa' + (matches.length > 1 ? 's' : '') + ')', 'ok');
+}
+
+/* ══ HOST VIEW ══ */
+function renderHostView(data, players, tables) {
+  if(!isHost) return;
+  var c = data.cfg||cfg;
+  var hasActiveTables = Object.values(tables||{}).some(function(t){
+    return t.status && t.status !== 'idle';
+  });
+  var isGameActive = data.status === 'playing' || hasActiveTables;
+  if(!isGameActive) {
+    renderHostPreGame(data, players, c);
+    return;
+  }
+  // In-game: build the queue + mesas HTML
+  renderHostInGame(data, players, tables, c);
+}
+
+function renderHostInGame(data, players, tables, c) {
+  var goal = +(c.points||100);
+
+  // IDs already committed to pending pairs
+  var pairedIds = hostPendingPairs.reduce(function(acc, pp){ acc.push(pp.p1.id, pp.p2.id); return acc; }, []);
+
+  var freePlayers = Object.values(players).filter(function(p){
+    return p.status==='available' && p.status!=='abandoned'
+      && (p.role==='player'||p.role==='host_only')
+      && pairedIds.indexOf(p.id)<0;
+  });
+
+  // ── Pending pair chips (draggable) ──
+  // ── Pending pair chips + "selecting" chip ──
+  var pendingHTML = '<div class="pending-pairs-area card" style="padding:12px 14px;margin-bottom:10px;">';
+  pendingHTML += '<div class="lbl-row" style="margin-bottom:8px;"><div class="lbl">Parejas formadas</div>'+
+    '<span class="small muted">Arrastra a una mesa</span></div>';
+
+  // Chip del primer jugador seleccionado
+  if(hostSelectingFirst) {
+    var fp = players[hostSelectingFirst];
+    pendingHTML += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;'+
+      'background:var(--goldbg);border:1.5px dashed var(--goldb);border-radius:var(--rsm);margin-bottom:6px;">'+
+      '<div class="av" style="'+avStyle(fp?fp.name:'?')+';width:28px;height:28px;font-size:10px;">'+avLetters(fp?fp.name:'?')+'</div>'+
+      '<div class="av" style="background:rgba(255,255,255,.05);border:1.5px dashed var(--goldb);width:28px;height:28px;font-size:16px;display:flex;align-items:center;justify-content:center;margin-left:-6px;">?</div>'+
+      '<span style="flex:1;font-size:13px;font-weight:600;color:var(--gold);">'+(fp?fp.name:'?')+'</span>'+
+      '<span class="small" style="color:var(--gold);opacity:.7;font-size:11px;">elige compañero ↓</span>'+
+      '<button class="pc-remove" style="color:var(--gold);" onclick="hostCancelFirstPick()">✕</button>'+
+      '</div>';
+  }
+
+  // Chips de parejas ya formadas
+  hostPendingPairs.forEach(function(pp, idx){
+    var p1=pp.p1, p2=pp.p2;
+    pendingHTML +=
+      '<div class="pair-chip" draggable="true" data-pair-idx="'+idx+'" '+
+      'ondragstart="hostDragPairChip(event,'+idx+')" '+
+      'style="margin-bottom:6px;">'+
+        '<div class="pc-avs">'+
+          '<div class="av" style="'+avStyle(p1.name)+'">'+avLetters(p1.name)+'</div>'+
+          '<div class="av" style="'+avStyle(p2.name)+';margin-left:-6px;">'+avLetters(p2.name)+'</div>'+
+        '</div>'+
+        '<span class="pc-names">'+p1.name+' + '+p2.name+'</span>'+
+        '<span class="small muted" style="font-size:10px;flex-shrink:0;margin-right:4px;">arrastra →</span>'+
+        '<button class="pc-remove" onclick="hostRemovePendingPair('+idx+')">✕</button>'+
+      '</div>';
+  });
+
+  if(!hostSelectingFirst && !hostPendingPairs.length) {
+    pendingHTML += '<div class="small muted">Selecciona jugadores abajo para formar parejas</div>';
+  }
+  pendingHTML += '</div>';
+
+  // ── Free player picker ──
+  var queueHTML = '<div class="card" style="padding:12px 14px;margin-bottom:10px;">';
+  queueHTML += '<div class="lbl-row" style="margin-bottom:8px;"><div class="lbl">Jugadores libres ('+freePlayers.length+')</div></div>';
+
+  if(freePlayers.length) {
+    freePlayers.forEach(function(p){
+      var isFirst = hostSelectingFirst === p.id;
+      var isOffline = !!p.offline;
+      var nameColor = isOffline ? '' : 'color:var(--t1);';
+      var tag = isOffline
+        ? '<span class="tag tg-gray" style="font-size:10px;margin-left:4px;">sin tel</span>'
+        : '';
+      var actionLabel = isFirst
+        ? '<span class="tag tg-gold" style="font-size:10px;">1° seleccionado</span>'
+        : (hostSelectingFirst
+            ? '<span class="tag tg-t1" style="font-size:10px;">+ compañero</span>'
+            : '<span class="small muted" style="font-size:11px;">seleccionar</span>'
+          );
+      queueHTML +=
+        '<div class="player-pick'+(isFirst?' picking':'')+'" onclick="hostPickPlayer(\x27'+p.id+'\x27)">'+
+          '<div class="av" style="'+avStyle(p.name)+';width:28px;height:28px;font-size:10px;">'+avLetters(p.name)+'</div>'+
+          '<span style="flex:1;font-size:13px;font-weight:600;'+nameColor+'">'+p.name+tag+'</span>'+
+          actionLabel+
+        '</div>';
+    });
+  } else if(!hostPendingPairs.length) {
+    queueHTML += '<div class="small muted">Sin jugadores libres</div>';
+  } else {
+    queueHTML += '<div class="small muted">Todos emparejados</div>';
+  }
+  queueHTML += '</div>';
+
+  var physTables = +(c.tables||1);
+  var mesasHTML = buildMesasHTML(tables, players, physTables, goal, c);
+  document.getElementById('hostMesas').innerHTML = queueHTML + pendingHTML + mesasHTML;
+
+  renderHostPlayers(players, tables);
+
+  var cfgEl = document.getElementById('hostCfgSummary');
+  if(cfgEl) cfgEl.innerHTML =
+    '<div class="table-row"><span class="muted small">Sala</span>'+
+    '<span class="mono small" style="background:var(--t1bg);color:var(--t1);padding:2px 8px;border-radius:999px;">'+roomCode+'</span></div>'+
+    '<div class="table-row"><span class="muted small">Nombre</span>'+
+    '<input type="text" value="'+(data.tournamentName||defaultTournamentName())+'" maxlength="40" style="flex:1;font-size:12px;padding:3px 7px;margin-left:8px;" oninput="saveTournamentName(this.value)"/></div>'+
+    '<div class="table-row"><span class="muted small">Mesas</span>'+
+    '<div style="display:flex;align-items:center;gap:6px;">'+
+    '<button class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:14px;" onclick="stepTables(-1)">−</button>'+
+    '<span class="mono small" id="hostTablesDisplay">'+(c.tables||1)+'</span>'+
+    '<button class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:14px;" onclick="stepTables(1)">+</button>'+
+    '</div></div>'+
+    '<div class="table-row"><span class="muted small">Puntos</span><span class="mono small">'+(c.points||100)+'</span></div>'+
+    '<div class="table-row"><span class="muted small">Modo</span><span class="small">'+(c.scoring==='victories'?'Victorias':'Acumulado')+'</span></div>';
+
+  var isPlaying = data.status === 'playing';
+  var restartBtn = isPlaying ? '<button class="btn btn-gold btn-full" onclick="hostRestart()">Reiniciar torneo</button>' : '';
+  var hbb = document.getElementById('hostBottomBtns');
+  if(hbb) hbb.innerHTML = restartBtn + '<button class="btn btn-red btn-full" onclick="leaveRoom()">Finalizar torneo</button>';
+}
+
+
+
+async function hostForceStart(tid){
+  const snap=await roomRef.child('tables/'+tid).once('value');
+  const table=snap.val(); if(!table) return;
+  const allPids=[...(table.p1Ids||[]),...(table.p2Ids||[])];
+  const r={};allPids.forEach(pid=>r[pid]=true);
+  await roomRef.child('tables/'+tid+'/readyPlayers').set(r);
+  await roomRef.child('tables/'+tid+'/status').set('playing');
+  toast('Mesa iniciada','ok');
+}
+
+async function hostTriggerPairing(tid){
+  const snap=await roomRef.once('value');
+  await runDynamicPairing(snap.val());
+}
+
+function statusTag(s){
+  return {lobby:'tg-t1',playing:'tg-grn',scoring:'tg-pur',conflict:'tg-red',done:'tg-t2',idle:'tg-gray',post_hand:'tg-gold'}[s]||'tg-gray';
+}
+function statusText(s){
+  return {lobby:'Lobby',playing:'En juego',scoring:'Anotando',conflict:'Conflicto',done:'Finalizado',idle:'Espera',post_hand:'Entre manos'}[s]||s;
+}
+
+/* ══ LEADERBOARD ══ */
+function renderLeaderboard(players,targetId){
+  const el=document.getElementById(targetId); if(!el) return;
+  const list=Object.values(players)
+    .filter(p=>p.role==='player'||p.role==='host_only')
+    .sort((a,b)=>(b.score||0)-(a.score||0));
+  el.innerHTML=list.map((p,i)=>{
+    const score=p.score||0;
+    const col=score>0?'color:var(--grn)':score<0?'color:var(--red)':'';
+    return `<div class="table-row">
+      <span class="tr-rank">${i+1}</span>
+      <div class="av" style="${avStyle(p.name)};width:26px;height:26px;font-size:10px;flex-shrink:0;">${avLetters(p.name)}</div>
+      <span class="tr-name">${p.name}${p.id===myId?' <span class="tag tg-gray">tú</span>':''}</span>
+      <span class="small muted">${p.gamesPlayed||0}J</span>
+      <span class="tr-score mono" style="${col}">${score>0?'+':''}${score}</span>
+    </div>`;
+  }).join('')||'<div class="small muted">Sin jugadores</div>';
+}
+
+function renderTableView(players,tables,pairs){
+  renderLeaderboard(players,'fullLeaderboard');
+  const history=Object.values({});
+  roomRef.child('history').once('value').then(snap=>{
+    const h=snap.val()||{};
+    const entries=Object.values(h).sort((a,b)=>b.ts-a.ts).slice(0,20);
+    document.getElementById('gameHistory').innerHTML=entries.map(e=>`
+      <div class="table-row">
+        <div style="flex:1;">
+          <div class="small" style="font-weight:500;">${e.pair1} vs ${e.pair2}</div>
+          <div class="small muted">${e.scoreA}–${e.scoreB} · ${e.winner}</div>
+        </div>
+        <span class="vbadge ${vbClass(e.victoryType)}">${
+          e.victoryType==='zapato'?'Zapato 👟':e.victoryType==='double'?'Doble':'Sencilla'
+        }</span>
+      </div>`).join('')||'<div class="small muted">Sin juegos registrados</div>';
+  });
+}
+
+/* ══ SCORER LOBBY ══ */
+function renderScorerLobby(table, players) {
+  // During lobby, stLobby already shows the ready list.
+  // scorerPostHand is only used here to trigger the action bar.
+  var allPids = (table.p1Ids||[]).concat(table.p2Ids||[]);
+  var ready = table.readyPlayers||{};
+
+  // Auto-mark offline players as ready
+  var offlineNotReady = allPids.filter(function(pid){
+    var p=players[pid]; return p && p.offline && !ready[pid];
+  });
+  if(offlineNotReady.length && myTableId) {
+    var u={};
+    offlineNotReady.forEach(function(pid){ u['tables/'+myTableId+'/readyPlayers/'+pid]=true; });
+    roomRef.update(u);
+  }
+
+  var allReady = allPids.every(function(pid){
+    var p=players[pid]; return !!ready[pid]||(p&&p.offline);
+  });
+  var scorerReady = !!(table.scorerAccepted||{})[myId];
+
+  // Clear the post divs — info is in stLobby
+  var sps = document.getElementById('scorerPostStatus');
+  if(sps) { sps.innerHTML=''; sps.className=''; }
+
+  // Action bar handles the buttons
+  if(allReady && scorerReady && myTableId) {
+    startHand(myTableId);
+  } else {
+    updateActionBar('lobby', {amScorer: true});
+  }
+}
+
+function renderGameAndScorer(data, players, tables) {
+  renderGameView(data, players, tables);
+  renderScorerView(data, players, tables);
+  if(isHost && !hostAutoSwitchedToGame) {
+    var myTable = findMyTable(tables);
+    if(myTable && (myTable.scorers||[]).indexOf(myId)>=0 && (myTable.status==='playing'||myTable.status==='lobby'||myTable.status==='scoring')) {
+      hostAutoSwitchedToGame = true; goNav('game');
+    }
+  }
+}
+
+/* ══ AUTO PAIRING ══ */
+function runAutoPairing(data) {
+  runDynamicPairing(data);
+}
+
+/* ══ HOST DRAG-DROP ══ */
+function makePairSlot(pIds,slotName,players,tid,canEdit){
+  if(!pIds||!pIds.length) return '<div style="border:1px dashed var(--line2);border-radius:6px;padding:8px;text-align:center;font-size:11px;color:var(--text3);margin-bottom:4px;">'+slotName+' — arrastrar aqui</div>';
+  var pnames=pIds.map(function(pid){ return players[pid]?players[pid].name:pid; }).join(' + ');
+  var rmBtn=canEdit?'<span class="slot-remove" data-tid="'+tid+'" data-slot="'+(slotName==='Pareja 1'?'pair1':'pair2')+'" onclick="hostRemovePairEl(this)">&#x2715;</span>':'';
+  return '<div class="mesa-slot"><span class="slot-name">'+pnames+'</span>'+rmBtn+'</div>';
+}
+function buildMesasHTML(tables,players,physTables,goal,c){
+  var realTables=Object.values(tables);
+  // Mesas llenas (en juego) van al final
+  realTables.sort(function(a,b){
+    var aFull=a&&!a._empty&&(a.status==='playing'||a.status==='scoring'||a.status==='post_hand'||a.status==='conflict'||a.status==='done'||(a.status==='lobby'&&(a.p1Ids||[]).length&&(a.p2Ids||[]).length));
+    var bFull=b&&!b._empty&&(b.status==='playing'||b.status==='scoring'||b.status==='post_hand'||b.status==='conflict'||b.status==='done'||(b.status==='lobby'&&(b.p1Ids||[]).length&&(b.p2Ids||[]).length));
+    if(aFull&&!bFull) return 1;
+    if(!aFull&&bFull) return -1;
+    return (a.number||99)-(b.number||99);
+  });
+  // Completar hasta physTables con slots vacíos que tengan números que no colisionen
+  var usedNums=realTables.map(function(t){ return t.number; });
+  var nextNum=1;
+  var tablesList=realTables.slice();
+  while(tablesList.length<physTables){
+    while(usedNums.indexOf(nextNum)>=0) nextNum++;
+    tablesList.push({_empty:true, number:nextNum});
+    usedNums.push(nextNum);
+    nextNum++;
+  }
+  var html='<div id="autoMatchCriteria" class="hidden"></div>';
+  html+='<div class="lbl-row"><div class="lbl">Mesas del torneo</div>';
+  html+='<button class="btn btn-sm btn-ghost" onclick="hostAutoMatchAll()">Sorteo auto</button></div>';
+  tablesList.slice(0,physTables).forEach(function(t,idx){
+    var isEmpty=!t||t._empty;
+    var num=t?t.number:(idx+1);
+    var tid=(!isEmpty&&t)?t.id:'';
+    var p1Ids=(!isEmpty&&t)?(t.p1Ids||[]):[];
+    var p2Ids=(!isEmpty&&t)?(t.p2Ids||[]):[];
+    var canEdit=isEmpty||t.status!=='playing';
+    var statusBadge=(!isEmpty&&t)?'<span class="tag '+statusTag(t.status)+'">'+statusText(t.status)+'</span>':'<span class="tag tg-gray">Vacía</span>';
+    var freeBtn='';
+    if(tid) freeBtn='<button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px;" onclick="hostFreeTable(\''+tid+'\')">&#x21BA;</button>';
+    var startBtn='';
+    if(!isEmpty&&t&&t.status==='lobby') startBtn='<button class="btn btn-sm btn-grn" style="padding:3px 8px;font-size:11px;" onclick="hostForceStart(\''+tid+'\')">Iniciar</button>';
+    var allInTable=p1Ids.concat(p2Ids);
+    var scorerBtn='';
+    if(!isEmpty&&t&&(t.status==='playing'||t.status==='scoring'||t.status==='post_hand')&&tid) scorerBtn='<button class="btn btn-sm btn-gold" style="padding:3px 8px;font-size:11px;" onclick="hostOpenScorer(\'' + tid + '\')">Anotar</button>';
+    var scorerSel='';
+    if(!isEmpty&&t&&allInTable.length){
+      var curScorer=(t.scorers||[])[0];
+      var scorerCandidateList=getScorerCandidates(allInTable, players, players);
+      var isPending=!curScorer||!!t.scorerPending;
+      var opts=scorerCandidateList.map(function(pp){
+        var srcLbl=scorerSourceLabel(pp._source||'table');
+        return '<option value="'+pp.id+'"'+(pp.id===curScorer?' selected':'')+'>'+pp.name+' ('+srcLbl+')</option>';
+      }).join('');
+      var noneOpt='<option value=""'+(isPending?' selected':'')+'>Anotador no seleccionado</option>';
+      var labelColor=isPending?'color:var(--gold);':'color:var(--text2);';
+      var warningIcon=isPending?'⚠ ':'';
+      scorerSel='<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;'+labelColor+'">'+warningIcon+'Anotador: '+
+        '<select style="flex:1;font-size:11px;padding:3px 6px;" onchange="hostSetScorer(\''+tid+'\',this.value)">'+noneOpt+opts+'</select></div>';
+    }
+    var scoreInfo='';
+    if(!isEmpty&&t&&(t.scoreA||t.scoreB||t.handNumber>1)) scoreInfo='<div class="mono small" style="margin:2px 0 6px;color:var(--text2);">'+(t.scoreA||0)+' \u2013 '+(t.scoreB||0)+' \u00b7 Mano '+(t.handNumber||1)+'</div>';
+    var mesaName='M'+num;
+    if(p1Ids.length||p2Ids.length){
+      var n1=p1Ids.map(function(pid){ return players[pid]?players[pid].name:pid; }).join('+');
+      var n2=p2Ids.map(function(pid){ return players[pid]?players[pid].name:pid; }).join('+');
+      if(n1&&n2) mesaName='M'+num+' · '+n1+' vs '+n2; else if(n1) mesaName='M'+num+' · '+n1+' vs ...';
+    }
+    var dnd=' ondragover="event.preventDefault()" ondragleave="event.currentTarget.querySelector(\'.mesa-drop\').classList.remove(\'drag-over\')" ondrop="hostDropPairOnTableNum(event,'+num+')"';
+    html+='<div class="mesa-card"'+dnd+'>'+
+      '<div class="mesa-header">'+
+        '<div style="flex:1;min-width:0;"><div class="mesa-title" style="margin-bottom:2px;">'+mesaName+'</div>'+scoreInfo+'</div>'+
+        '<div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">'+statusBadge+freeBtn+startBtn+scorerBtn+'</div>'+
+      '</div>'+
+      '<div class="mesa-drop">'+makePairSlot(p1Ids,'Pareja 1',players,tid,canEdit)+makePairSlot(p2Ids,'Pareja 2',players,tid,canEdit)+'</div>'+
+      scorerSel+'</div>';
+  });
+  return html;
+}
+function hostRemovePairEl(el){ hostRemovePairFromTable(el.getAttribute('data-tid'),el.getAttribute('data-slot')); }
+function hostDropPairOnTableNum(event,tableNum){
+  event.preventDefault(); var dropEl=event.currentTarget.querySelector('.mesa-drop'); if(dropEl) dropEl.classList.remove('drag-over');
+  var pairIds; try{ pairIds=JSON.parse(event.dataTransfer.getData('text/plain')); }catch(e){ return; }
+  if(!pairIds||pairIds.length!==2) return;
+  roomRef.once('value').then(function(snap){
+    var data=snap.val()||{}, tables=Object.values(data.tables||{}), players=data.players||{};
+    var t=tables.find(function(tb){ return tb.number===+tableNum; });
+    var u={}, tid, p1Ids, p2Ids;
+    if(t){ tid=t.id; p1Ids=t.p1Ids||[]; p2Ids=t.p2Ids||[]; }
+    else{ tid='table_'+tableNum; p1Ids=[]; p2Ids=[]; u['tables/'+tid+'/id']=tid; u['tables/'+tid+'/number']=+tableNum; u['tables/'+tid+'/status']='idle'; }
+    var slot=!p1Ids.length?'pair1':(!p2Ids.length?'pair2':null);
+    if(!slot){ toast('Mesa llena. Saca una pareja primero.','err'); return; }
+    u['tables/'+tid+'/'+(slot==='pair1'?'p1Ids':'p2Ids')]=pairIds;
+    u['tables/'+tid+'/'+(slot==='pair1'?'pair1name':'pair2name')]=pairIds.map(function(pid){ return players[pid]?players[pid].name:pid; }).join('+');
+    // Always mark assigned players as playing immediately
+    pairIds.forEach(function(pid){ if(pid) u['players/'+pid+'/status']='playing'; });
+    var newP1=slot==='pair1'?pairIds:p1Ids, newP2=slot==='pair2'?pairIds:p2Ids;
+    if(newP1.length&&newP2.length){
+      u['tables/'+tid+'/status']='lobby'; u['tables/'+tid+'/scoreA']=0; u['tables/'+tid+'/scoreB']=0;
+      u['tables/'+tid+'/hands']=[]; u['tables/'+tid+'/handNumber']=1; u['tables/'+tid+'/readyPlayers']={}; u['tables/'+tid+'/scorerAccepted']={};
+      var allNewPids = newP1.concat(newP2);
+      var bestScorer = findBestScorer(allNewPids, players, players);
+      if(!(t&&t.scorers&&t.scorers.length)){
+        u['tables/'+tid+'/scorers'] = bestScorer ? [bestScorer] : [];
+        u['tables/'+tid+'/scorerPending'] = !bestScorer;
+      }
+    }
+    // Remove from pending pairs if it was a pending chip
+var pairIdxStr = event.dataTransfer.getData('text/pair-idx');
+if(pairIdxStr!=='' && !isNaN(+pairIdxStr)){
+  hostPendingPairs.splice(+pairIdxStr, 1);
+}
+hostSelectingFirst = null;
+roomRef.update(u).then(function(){ toast('Pareja asignada a Mesa '+tableNum,'ok'); });
+  });
+}
+function hostRemovePairFromTable(tid,pairSlot){
+  roomRef.child('tables/'+tid).once('value').then(function(snap){
+    var t=snap.val()||{}, u={};
+    var removedIds=pairSlot==='pair1'?(t.p1Ids||[]):(t.p2Ids||[]);
+    var removedName=pairSlot==='pair1'?(t.pair1name||''):(t.pair2name||'');
+    u['tables/'+tid+'/'+(pairSlot==='pair1'?'p1Ids':'p2Ids')]=[];
+    u['tables/'+tid+'/'+(pairSlot==='pair1'?'pair1name':'pair2name')]='';
+    if(t.status!=='playing'){
+      u['tables/'+tid+'/status']='idle';
+      removedIds.forEach(function(pid){ if(pid) u['players/'+pid+'/status']='available'; });
+    }
+    roomRef.update(u).then(function(){
+      // Add back as pending pair chip if we have 2 player ids
+      if(removedIds.length>=2){
+        roomRef.child('players').once('value').then(function(pSnap){
+          var players=pSnap.val()||{};
+          var p1=players[removedIds[0]], p2=players[removedIds[1]];
+          if(p1&&p2){
+            hostPendingPairs.push({p1:p1,p2:p2});
+            roomRef.once('value').then(function(s){ var d=s.val()||{}; renderHostView(d,d.players||{},d.tables||{}); });
+          }
+        });
+      } else {
+        toast('Pareja removida','ok');
+      }
+    });
+  });
+}
+
+/* ══ HOST PRE-GAME ══ */
+function renderHostPreGame(data,players,c){
+  var hostMesas=document.getElementById('hostMesas'), hostBottomBtns=document.getElementById('hostBottomBtns'), hostCfgSummary=document.getElementById('hostCfgSummary');
+  hostCfgSummary.innerHTML=
+    '<div class="table-row" style="padding:10px 0;"><span class="muted small">Codigo de sala</span><span class="mono" style="font-size:18px;font-weight:700;background:var(--t1bg);color:var(--t1);padding:4px 14px;border-radius:999px;letter-spacing:4px;">'+roomCode+'</span></div>'+
+    '<div class="table-row"><span class="muted small">Puntos por juego</span><div style="display:flex;align-items:center;gap:6px;"><button class="btn btn-ghost btn-sm" style="padding:3px 10px;" onclick="hostStepPoints(-50)">-</button><span class="mono small" id="hostPointsDisplay">'+(c.points||100)+'</span><button class="btn btn-ghost btn-sm" style="padding:3px 10px;" onclick="hostStepPoints(50)">+</button></div></div>'+
+    '<div class="table-row"><span class="muted small">Puntuacion</span><div style="display:flex;gap:4px;"><button class="opt'+((c.scoring||'victories')==='victories'?' on':'')+'" id="hsBtnVic" onclick="hostSetScoring(this)">Victorias</button><button class="opt'+(c.scoring==='accumulated'?' on':'')+'" id="hsBtnAcc" onclick="hostSetScoring(this)">Acumulado</button></div></div>'+
+    '<div class="table-row"><span class="muted small">Anotación</span><select style="width:auto;font-size:12px;padding:4px 8px;" onchange="hostSetPointMode(this.value)"><option value="winner"'+((c.pointMode||'winner')==='winner'?' selected':'')+'>Puntos al ganador</option><option value="loser"'+(c.pointMode==='loser'?' selected':'')+'>Puntos al perdedor</option></select></div>'+
+    '<div class="table-row"><span class="muted small">Mesas fisicas</span><div style="display:flex;align-items:center;gap:6px;"><button class="btn btn-ghost btn-sm" style="padding:3px 10px;" onclick="stepTables(-1)">-</button><span class="mono small" id="tablesDisplay">'+(c.tables||1)+'</span><button class="btn btn-ghost btn-sm" style="padding:3px 10px;" onclick="stepTables(1)">+</button></div></div>'+
+    '<div class="table-row"><span class="muted small">Emparejamiento</span><select style="width:auto;font-size:12px;padding:4px 8px;" onchange="hostSetPairs(this.value)"><option value="dynamic"'+(( c.pairs||'dynamic')==='dynamic'?' selected':'')+'>Dinámico</option><option value="fixed"'+(c.pairs==='fixed'?' selected':'')+'>Fijo</option></select></div>'+
+    '<div class="table-row"><span class="muted small">Modo anotador</span><select style="width:auto;font-size:12px;padding:4px 8px;" onchange="hostSetScorer(null,null,this.value)"><option value="player"'+((c.scorer||'player')==='player'?' selected':'')+'>Jugador en mesa</option><option value="external"'+(c.scorer==='external'?' selected':'')+'>Externo</option><option value="double"'+(c.scorer==='double'?' selected':'')+'>Doble anotador</option></select></div>'+
+    '<div class="table-row"><span class="muted small">El host juega</span><select style="width:auto;font-size:12px;padding:4px 8px;" onchange="hostSetHostPlays(this.value)"><option value="yes"'+((c.hostPlays||'yes')==='yes'?' selected':'')+'>Si, soy jugador</option><option value="no"'+(c.hostPlays==='no'?' selected':'')+'>No, solo administro</option></select></div>';
+  renderHostPlayers(players,data.tables||{});
+  var playerCount=Object.values(players).filter(function(p){ return p.role==='player'||p.role==='host_only'; }).length;
+  hostMesas.innerHTML='<div class="lbl" style="margin-bottom:8px;">Jugadores registrados: '+playerCount+'</div>';
+  var canStart=playerCount>=4;
+  hostBottomBtns.innerHTML='<button class="btn btn-red btn-full" onclick="leaveRoom()">Cerrar sala</button>';
+  if(canStart) updateActionBar('pre-game'); else updateActionBar(null);
+}
+
+function renderHostPlayers(players,tables){
+  var el=document.getElementById('hostPlayerList'); if(!el) return;
+  el.innerHTML='';
+  var active=Object.values(players).filter(function(p){ return p.status!=='abandoned'; });
+  var hpc=document.getElementById('hostPCount'); if(hpc) hpc.textContent=active.length;
+  if(!active.length){ el.innerHTML='<div class="small muted">Sin jugadores</div>'; return; }
+  active.forEach(function(p){
+    var isMe=p.id===myId, inTable=p.status==='playing', tableNum='';
+    if(inTable){ var pt=Object.values(tables).find(function(t){ return (t.p1Ids||[]).indexOf(p.id)>=0||(t.p2Ids||[]).indexOf(p.id)>=0; }); if(pt) tableNum=' M'+pt.number; }
+    var row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;';
+    var av=document.createElement('div'); av.className='av'; av.style.cssText=avStyle(p.name)+';width:28px;height:28px;font-size:10px;flex-shrink:0;'; av.textContent=avLetters(p.name); row.appendChild(av);
+    var inp=document.createElement('input'); inp.type='text'; inp.value=p.name; inp.style.cssText='flex:1;min-width:60px;padding:4px 7px;font-size:13px;font-weight:600;';
+    var pid=p.id; inp.onblur=function(){ hostRenamePlayer(pid,this.value); }; inp.onkeydown=function(e){ if(e.key==='Enter') this.blur(); }; row.appendChild(inp);
+    var badge=document.createElement('span'); badge.className='tag '+(inTable?'tg-t1':'tg-grn'); badge.style.cssText='flex-shrink:0;font-size:10px;'; badge.textContent=inTable?('Jugando'+tableNum):'Libre'; row.appendChild(badge);
+    if(isMe){ var hb=document.createElement('span'); hb.className='tag tg-gold'; hb.style.cssText='flex-shrink:0;font-size:10px;'; hb.textContent='Host'; row.appendChild(hb); }
+    if(!p.offline){ var sel=document.createElement('select'); sel.style.cssText='width:auto;font-size:11px;padding:3px 5px;flex-shrink:0;'; [['player','Jugador'],['host_only','Solo host'],['scorer_dedicated','Anotador'],['spectator','Espectador']].forEach(function(opt){ var o=document.createElement('option'); o.value=opt[0]; o.textContent=opt[1]; if(p.role===opt[0]) o.selected=true; sel.appendChild(o); }); sel.onchange=function(){ updateRole(pid,this.value); }; row.appendChild(sel); }
+    else{ var ot=document.createElement('span'); ot.className='tag tg-gray'; ot.style.cssText='flex-shrink:0;font-size:10px;'; ot.textContent='Sin telefono'; row.appendChild(ot); }
+    if(!isMe){ var rm=document.createElement('button'); rm.className='btn btn-ghost btn-sm'; rm.style.cssText='padding:3px 6px;font-size:12px;flex-shrink:0;color:var(--red);'; rm.innerHTML='&#x2715;'; rm.onclick=function(){ hostRemovePlayer(pid); }; row.appendChild(rm); }
+    el.appendChild(row);
+  });
+}
+
+function hostSetScoring(el){ var val=el.id==='hsBtnVic'?'victories':'accumulated'; cfg.scoring=val; if(roomRef) roomRef.child('cfg/scoring').set(val); var vic=document.getElementById('hsBtnVic'), acc=document.getElementById('hsBtnAcc'); if(vic) vic.classList.toggle('on',val==='victories'); if(acc) acc.classList.toggle('on',val==='accumulated'); }
+function hostSetPairs(val){ cfg.pairs=val; if(roomRef) roomRef.child('cfg/pairs').set(val); }
+function hostSetPointMode(val){ cfg.pointMode=val; if(roomRef) roomRef.child('cfg/pointMode').set(val); }
+function hostSetHostPlays(val){ cfg.hostPlays=val; if(roomRef) roomRef.child('cfg/hostPlays').set(val); var role=val==='yes'?'player':'host_only'; if(roomRef) roomRef.child('players/'+myId+'/role').set(role); }
+function hostSetScorer(tid, val, cfgVal) {
+  if(cfgVal !== undefined) {
+    // Setting cfg.scorer mode
+    cfg.scorer=cfgVal; if(roomRef) roomRef.child('cfg/scorer').set(cfgVal); return;
+  }
+  if(!tid) return;
+  if(!val) {
+    // Clear scorer
+    roomRef.child('tables/'+tid+'/scorers').set([]);
+    roomRef.child('tables/'+tid+'/scorerPending').set(true);
+    roomRef.child('tables/'+tid+'/scorerAccepted').set({});
+  } else {
+    roomRef.child('tables/'+tid+'/scorers').set([val]);
+    roomRef.child('tables/'+tid+'/scorerPending').set(false);
+    roomRef.child('tables/'+tid+'/scorerAccepted').set({});
+    toast('Anotador asignado','ok');
+  }
+}
+function hostStartFromPanel(){ roomRef.child('players').once('value').then(function(snap){ var players=Object.values(snap.val()||{}); var pairs=generatePairsAlgo(players,cfg.pairs); renderPairsPreview(pairs); setTimeout(function(){ startTournament(); },300); }); }
+function hostStepPoints(delta){ roomRef.child('cfg').once('value').then(function(snap){ var c=snap.val()||cfg, next=Math.max(50,Math.min(500,(+(c.points||100))+delta)); cfg.points=next; roomRef.child('cfg/points').set(next).then(function(){ var el=document.getElementById('hostPointsDisplay'); if(el) el.textContent=next; }); }); }
+function hostAutoMatchAll(){ var el=document.getElementById('autoMatchCriteria'); if(!el) return; if(!el.classList.contains('hidden')){ el.classList.add('hidden'); return; } el.innerHTML='<div class="lbl" style="margin-bottom:8px;">Criterio de sorteo</div><div class="fault-item" id="criteriaRandom" style="margin-bottom:6px;"><span class="fault-icon">&#127922;</span><div style="flex:1;"><div class="fault-text">Aleatorio</div><div class="small muted">Sorteo sin criterio</div></div></div><div class="fault-item" id="criteriaBalanced"><span class="fault-icon">&#9878;&#65039;</span><div style="flex:1;"><div class="fault-text">Balanceado</div><div class="small muted">Mejor + peor por tabla</div></div></div><button class="btn btn-ghost btn-sm btn-full" id="criteriaCancelBtn" style="margin-top:8px;">Cancelar</button>'; el.classList.remove('hidden'); document.getElementById('criteriaRandom').onclick=function(){ hostRunAutoMatch('random'); }; document.getElementById('criteriaBalanced').onclick=function(){ hostRunAutoMatch('balanced'); }; document.getElementById('criteriaCancelBtn').onclick=function(){ el.classList.add('hidden'); }; }
+function hostRunAutoMatch(criteria){ 
+  var el=document.getElementById('autoMatchCriteria'); 
+  if(el) el.classList.add('hidden'); 
+  roomRef.once('value').then(function(snap){ 
+    var data=snap.val()||{};
+    var players=data.players||{};
+    var tables=Object.values(data.tables||{});
+
+    // Free tables: idle or done
+    var freeTables=tables.filter(function(t){ return t.status==='idle'||t.status==='done'; });
+    if(!freeTables.length){ toast('No hay mesas disponibles','warn'); return; }
+
+    // IDs already in pending pairs
+    var pendingIds=hostPendingPairs.reduce(function(acc,pp){ acc.push(pp.p1.id,pp.p2.id); return acc; },[]);
+
+    // Available players not already in a pending pair
+    var available=Object.values(players).filter(function(p){
+      return p.status==='available'
+        && p.status!=='abandoned'
+        && (p.role==='player'||p.role==='host_only')
+        && pendingIds.indexOf(p.id)<0;
+    });
+
+    // Generate additional pairs from remaining available players using criteria
+    var sorted;
+    if(criteria==='balanced'){
+      var byScore=available.slice().sort(function(a,b){ return (b.score||0)-(a.score||0); });
+      var mid=Math.ceil(byScore.length/2);
+      var top=byScore.slice(0,mid), bot=byScore.slice(mid);
+      sorted=[];
+      for(var i=0;i<Math.min(top.length,bot.length);i++){ sorted.push(top[i],bot[i]); }
+      sorted=sorted.concat(top.slice(bot.length)).concat(bot.slice(top.length));
+    } else {
+      // random
+      sorted=available.slice().sort(function(){ return Math.random()-.5; });
+    }
+
+    // Build new pairs from sorted available
+    var newPairs=[];
+    for(var i=0;i+1<sorted.length;i+=2){
+      newPairs.push({p1:sorted[i],p2:sorted[i+1]});
+    }
+    // odd player left over → skip (goes to waiting)
+
+    // All pairs to assign = pending (manual) + new (auto)
+    var allPairs=hostPendingPairs.concat(newPairs);
+
+    // Match pairs → matches (2 pairs per match = 1 table)
+    var matches=[];
+    for(var i=0;i+1<allPairs.length;i+=2){
+      matches.push({pair1:allPairs[i],pair2:allPairs[i+1]});
+    }
+
+    var tablesToUse=Math.min(matches.length,freeTables.length);
+    if(!tablesToUse){ toast('No hay suficientes parejas para armar una mesa','warn'); return; }
+
+    var updates={};
+    var usedPlayerIds={};
+
+    for(var i=0;i<tablesToUse;i++){
+      var m=matches[i];
+      var t=freeTables[i];
+      var tid=t.id;
+      var p1Ids=[m.pair1.p1.id,m.pair1.p2.id].filter(Boolean);
+      var p2Ids=[m.pair2.p1.id,m.pair2.p2.id].filter(Boolean);
+      var p1name=m.pair1.p1.name+(m.pair1.p2?'+'+m.pair1.p2.name:'');
+      var p2name=m.pair2.p1.name+(m.pair2.p2?'+'+m.pair2.p2.name:'');
+      var scorer=findBestScorer(p1Ids.concat(p2Ids), players, players);
+
+      updates['tables/'+tid+'/p1Ids']=p1Ids;
+      updates['tables/'+tid+'/p2Ids']=p2Ids;
+      updates['tables/'+tid+'/pair1name']=p1name;
+      updates['tables/'+tid+'/pair2name']=p2name;
+      updates['tables/'+tid+'/status']='lobby';
+      updates['tables/'+tid+'/scoreA']=0;
+      updates['tables/'+tid+'/scoreB']=0;
+      updates['tables/'+tid+'/hands']=[];
+      updates['tables/'+tid+'/handNumber']=1;
+      updates['tables/'+tid+'/readyPlayers']={};
+      updates['tables/'+tid+'/scorerAccepted']={};
+      updates['tables/'+tid+'/scorers']=scorer?[scorer]:[];
+      updates['tables/'+tid+'/scorerPending']=!scorer;
+
+      p1Ids.concat(p2Ids).forEach(function(pid){
+        if(pid){ updates['players/'+pid+'/status']='playing'; usedPlayerIds[pid]=true; }
+      });
+    }
+
+    // Remaining unassigned players → waiting queue
+    var allPairIds=allPairs.reduce(function(acc,pp){ acc.push(pp.p1.id,pp.p2.id); return acc; },[]);
+    var waiting=allPairIds.filter(function(pid){ return !usedPlayerIds[pid]; });
+    // Also include unpaired available players
+    if(sorted.length%2===1) waiting.push(sorted[sorted.length-1].id);
+    updates['waitingQueue']=waiting;
+
+    hostPendingPairs=[];
+    hostSelectingFirst=null;
+    roomRef.update(updates).then(function(){
+      var count=tablesToUse;
+      toast(count+' mesa'+(count>1?'s':'')+' asignada'+(count>1?'s':'')+' ✓','ok');
+    });
+  });
+}
+var _freeTableTid = null;
+function hostFreeTable(tid){
+  _freeTableTid = tid;
+  roomRef.child('tables/'+tid).once('value').then(function(snap){
+    var t = snap.val()||{};
+    var p1 = (t.pair1name||'').trim();
+    var p2 = (t.pair2name||'').trim();
+    var title = document.getElementById('freeTableTitle');
+    var sub = document.getElementById('freeTableSub');
+    if(title) title.textContent = 'Mesa '+(t.number||'') + (p1&&p2?' · '+p1+' vs '+p2:'');
+    if(sub) sub.textContent = '¿Qué quieres hacer con los jugadores de esta mesa?';
+    openModal('freeTableModal');
+  });
+}
+function freeTableAction(mode){
+  closeModal('freeTableModal');
+  var tid = _freeTableTid; if(!tid) return;
+  roomRef.child('tables/'+tid).once('value').then(function(snap){
+    var t = snap.val()||{};
+    var allPids = (t.p1Ids||[]).concat(t.p2Ids||[]);
+    var u = {};
+    if(mode === 'keep'){
+      // Keep pair assignments, reset to lobby
+      u['tables/'+tid+'/status'] = 'lobby';
+      u['tables/'+tid+'/scoreA'] = 0;
+      u['tables/'+tid+'/scoreB'] = 0;
+      u['tables/'+tid+'/hands'] = [];
+      u['tables/'+tid+'/handNumber'] = 1;
+      u['tables/'+tid+'/readyPlayers'] = {};
+      u['tables/'+tid+'/scorerAccepted'] = {};
+      allPids.forEach(function(pid){ if(pid) u['players/'+pid+'/status']='playing'; });
+      roomRef.update(u).then(function(){ toast('Mesa reiniciada con las mismas parejas','ok'); });
+    } else {
+      // Free all players
+      u['tables/'+tid+'/status'] = 'idle';
+      u['tables/'+tid+'/p1Ids'] = [];
+      u['tables/'+tid+'/p2Ids'] = [];
+      u['tables/'+tid+'/pair1name'] = '';
+      u['tables/'+tid+'/pair2name'] = '';
+      allPids.forEach(function(pid){ if(pid) u['players/'+pid+'/status']='available'; });
+      roomRef.update(u).then(function(){ toast('Jugadores liberados','ok'); });
+    }
+  });
+}
+function hostRemovePlayer(pid){
+  if(!confirm('Sacar este jugador del torneo?')) return;
+  var u={}; u['players/'+pid+'/status']='abandoned'; u['players/'+pid+'/role']='spectator';
+  roomRef.update(u).then(function(){ toast('Jugador removido','ok'); });
+}
+function hostStartTournament(){ roomRef.once('value').then(function(snap){ var data=snap.val()||{}, tables=Object.values(data.tables||{}), ready=tables.filter(function(t){ return (t.p1Ids||[]).length&&(t.p2Ids||[]).length; }); if(!ready.length){ var players=Object.values(data.players||{}), pairs=generatePairsAlgo(players,(data.cfg||cfg).pairs); roomRef.child('previewPairs').set(pairs.map(function(p){ return {p1Id:p.p1.id,p1name:p.p1.name,p2Id:p.p2?p.p2.id:null,p2name:p.p2?p.p2.name:null,bye:p.bye||false}; })).then(function(){ startTournament(); }); }else{ roomRef.child('status').set('playing').then(function(){ toast('Torneo iniciado!','ok'); }); } }); }
+function hostRestart(){ if(!confirm('Reiniciar el torneo? Se restablecen marcadores a 0 pero se mantienen los jugadores.')) return; roomRef.once('value').then(function(snap){ var data=snap.val()||{}, u={}; Object.values(data.players||{}).forEach(function(p){ if(p.status!=='abandoned'){ u['players/'+p.id+'/score']=0; u['players/'+p.id+'/wins']=0; u['players/'+p.id+'/losses']=0; u['players/'+p.id+'/gamesPlayed']=0; u['players/'+p.id+'/pairHistory']=[]; u['players/'+p.id+'/pairVuelta']=1; u['players/'+p.id+'/status']='available'; } }); Object.values(data.tables||{}).forEach(function(t){ u['tables/'+t.id+'/scoreA']=0; u['tables/'+t.id+'/scoreB']=0; u['tables/'+t.id+'/hands']=[]; u['tables/'+t.id+'/handNumber']=1; u['tables/'+t.id+'/status']='idle'; u['tables/'+t.id+'/readyPlayers']={}; }); u['history']={}; u['waitingQueue']=[]; roomRef.update(u).then(function(){ toast('Torneo reiniciado!','ok'); roomRef.once('value').then(function(snap2){ runAutoPairing(snap2.val()); }); }); }); }
+function hostRenamePlayer(pid,newName){
+  newName=(newName||'').trim(); if(!newName) return;
+  roomRef.child('players/'+pid+'/name').set(newName);
+  // Update pair names on any active table containing this player
+  roomRef.child('tables').once('value').then(function(snap){
+    var tables=snap.val()||{}, u={};
+    Object.values(tables).forEach(function(t){
+      var inP1=(t.p1Ids||[]).indexOf(pid)>=0;
+      var inP2=(t.p2Ids||[]).indexOf(pid)>=0;
+      if(!inP1&&!inP2) return;
+      // Rebuild pair name for the side that contains pid
+      roomRef.child('players').once('value').then(function(pSnap){
+        var players=pSnap.val()||{};
+        players[pid]={...players[pid],name:newName}; // apply rename before building
+        if(inP1){
+          var n=(t.p1Ids||[]).map(function(id){ return id===pid?newName:(players[id]?players[id].name:id); }).join('+');
+          u['tables/'+t.id+'/pair1name']=n;
+        }
+        if(inP2){
+          var n=(t.p2Ids||[]).map(function(id){ return id===pid?newName:(players[id]?players[id].name:id); }).join('+');
+          u['tables/'+t.id+'/pair2name']=n;
+        }
+        if(Object.keys(u).length) roomRef.update(u);
+      });
+    });
+  });
+  // Also update any pending pair chips locally
+  hostPendingPairs.forEach(function(pp){
+    if(pp.p1.id===pid) pp.p1.name=newName;
+    if(pp.p2.id===pid) pp.p2.name=newName;
+  });
+}
+/* ── New pair selection helpers ── */
+function hostPickPlayer(pid) {
+  if(!hostSelectingFirst) {
+    // First tap: lock first player
+    hostSelectingFirst = pid;
+  } else if(hostSelectingFirst === pid) {
+    // Tap same player again: deselect
+    hostSelectingFirst = null;
+  } else {
+    // Second tap: form pair, add to pending, clear selection
+    roomRef.child('players').once('value').then(function(snap){
+      var players = snap.val()||{};
+      var p1 = players[hostSelectingFirst];
+      var p2 = players[pid];
+      if(!p1||!p2) { hostSelectingFirst=null; return; }
+      hostPendingPairs.push({p1:p1, p2:p2});
+      hostSelectingFirst = null;
+      // Re-render
+      roomRef.once('value').then(function(s){ var d=s.val()||{}; renderHostView(d,d.players||{},d.tables||{}); });
+    });
+    return;
+  }
+  roomRef.once('value').then(function(snap){ var d=snap.val()||{}; renderHostView(d,d.players||{},d.tables||{}); });
+}
+function hostCancelFirstPick(){
+  hostSelectingFirst = null;
+  roomRef.once('value').then(function(snap){ var d=snap.val()||{}; renderHostView(d,d.players||{},d.tables||{}); });
+}
+function hostRemovePendingPair(idx){
+  hostPendingPairs.splice(idx,1);
+  roomRef.once('value').then(function(snap){ var d=snap.val()||{}; renderHostView(d,d.players||{},d.tables||{}); });
+}
+function hostDragPairChip(event, idx){
+  var pp = hostPendingPairs[idx];
+  if(!pp) return;
+  event.dataTransfer.setData('text/plain', JSON.stringify([pp.p1.id, pp.p2.id]));
+  event.dataTransfer.setData('text/pair-idx', String(idx));
+  event.dataTransfer.effectAllowed = 'move';
+}
+// Legacy compatibility
+function togglePairSelect(pid){ hostPickPlayer(pid); }
+function clearPairSelect(){ hostSelectingFirst=null; hostPendingPairs=[]; roomRef.once('value').then(function(snap){ var d=snap.val()||{}; renderHostView(d,d.players||{},d.tables||{}); }); }
+function hostDragPairStart(event){ hostDragPairChip(event,0); }
+function hostForceStart(tid){ roomRef.child('tables/'+tid).once('value').then(function(snap){ var table=snap.val(), allPids=(table.p1Ids||[]).concat(table.p2Ids||[]); var r={}; allPids.forEach(function(pid){ r[pid]=true; }); var u={}; u['tables/'+tid+'/readyPlayers']=r; u['tables/'+tid+'/status']='playing'; roomRef.update(u); toast('Mesa iniciada','ok'); }); }
+function hostTriggerPairing(){ roomRef.once('value').then(function(snap){ runAutoPairing(snap.val()); }); }
+function dissolvePair(pid1,pid2){ var u={}; u['players/'+pid1+'/status']='available'; if(pid2) u['players/'+pid2+'/status']='available'; roomRef.update(u).then(function(){ toast('Pareja disuelta','ok'); }); }
+function hostManualPair(){ if(hostSelectedForPair.length!==2) return; roomRef.once('value').then(function(snap){ var data=snap.val()||{}, tables=Object.values(data.tables||{}), players=data.players||{}, p1=players[hostSelectedForPair[0]], p2=players[hostSelectedForPair[1]]; if(!p1||!p2) return; var idleTable=tables.find(function(t){ return t.status==='idle'||t.status==='done'; }); if(!idleTable){ toast('No hay mesas libres','err'); hostSelectedForPair=[]; return; } var otherFree=Object.values(players).filter(function(p){ return p.status==='available'&&(p.role==='player'||p.role==='host_only')&&p.id!==hostSelectedForPair[0]&&p.id!==hostSelectedForPair[1]; }); if(otherFree.length>=2){ var sorted=otherFree.sort(function(a,b){ return (b.score||0)-(a.score||0); }), p3=sorted[0], p4=sorted[sorted.length-1]; var u={}, tid=idleTable.id; u['tables/'+tid+'/p1Ids']=[p1.id,p2.id]; u['tables/'+tid+'/p2Ids']=[p3.id,p4.id]; u['tables/'+tid+'/pair1name']=p1.name+'+'+p2.name; u['tables/'+tid+'/pair2name']=p3.name+'+'+p4.name; u['tables/'+tid+'/status']='lobby'; u['tables/'+tid+'/scoreA']=0; u['tables/'+tid+'/scoreB']=0; u['tables/'+tid+'/hands']=[]; u['tables/'+tid+'/handNumber']=1; u['tables/'+tid+'/readyPlayers']={}; u['tables/'+tid+'/scorerAccepted']={}; u['tables/'+tid+'/scorers']=[!p1.offline?p1.id:p2.id]; [p1.id,p2.id,p3.id,p4.id].forEach(function(pid){ u['players/'+pid+'/status']='playing'; }); roomRef.update(u).then(function(){ toast('Pareja asignada a Mesa '+idleTable.number,'ok'); }); }else{ var curQueue=data.waitingQueue||[], newQueue=curQueue.filter(function(id){ return id!==p1.id&&id!==p2.id; }); newQueue.unshift(p2.id); newQueue.unshift(p1.id); roomRef.child('waitingQueue').set(newQueue); toast(p1.name+' y '+p2.name+' emparejados. Esperando rivales.','ok'); } hostSelectedForPair=[]; }); }
+
+/* ══ LEAVE ══ */
+async function leaveRoom(){
+  if(!roomRef) return;
+  if(isHost){if(!confirm('¿Cerrar el torneo para todos?'))return;await roomRef.remove();}
+  else{await roomRef.child('players/'+myId).remove();}
+  leaveRoomLocal();
+}
+function leaveRoomLocal(){
+  if(roomRef&&roomListener) roomRef.off('value',roomListener);
+  roomListener=null;roomRef=null;roomCode='';isHost=false;myTableId=null;
+  document.getElementById('hdrRoom').style.display='none';
+  document.getElementById('bnav').classList.remove('show');
+  if(_fromHub) {
+    window.parent.postMessage({ type: 'GAME_CLOSED' }, '*');
+  } else {
+    showScreen('sHome');
+  }
+}
+
+/* ══ KEYBOARD ══ */
+if(myNick) document.getElementById('nickIn').value=myNick;
+document.getElementById('nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')createRoom();});
+document.getElementById('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom();});
+document.getElementById('codeIn').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
+
+/* ══ HUB AUTO-BOOTSTRAP ══ */
+if(_fromHub && myNick) {
+  // Hide sHome visually — DOM stays intact so createRoom/joinRoom can read inputs
+  const _sHome = document.getElementById('sHome');
+  _sHome.style.cssText = 'visibility:hidden;pointer-events:none;';
+
+  // Overlay spinner
+  const _sp = document.createElement('div');
+  _sp.id = '_hubSpinner';
+  _sp.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;background:var(--bg);';
+  _sp.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div class="spinner"></div><div style="font-size:13px;font-weight:600;letter-spacing:.02em;opacity:.6;">Preparando sala…</div></div>';
+  document.body.appendChild(_sp);
+
+  const _done = () => {
+    document.getElementById('_hubSpinner')?.remove();
+    _sHome.style.cssText = '';
+  };
+
+  setTimeout(async () => {
+    try {
+      if(_hubCode && _hubCode.length >= 4) {
+        const snap = await db.ref('dom_rooms/'+_hubCode).once('value');
+        _done();
+        if(snap.exists()) {
+          document.getElementById('codeIn').value = _hubCode;
+          joinRoom();
+        } else {
+          handleRoomNotFound(_hubCode);
+        }
+      } else {
+        _done();
+        createRoom();
+      }
+    } catch(e) { _done(); }
+  }, 300);
+}
+/* ══ HOST SCORER MODAL ══ */
+var hostScorerTid = null;
+
+function hostOpenScorer(tid) {
+  hostScorerTid = tid;
+  roomRef.child('tables/' + tid).once('value').then(function(snap) {
+    var t = snap.val(); if(!t) return;
+    var goal = +(cfg.points || 100);
+    document.getElementById('hostScorerTitle').textContent =
+      'M' + t.number + ' · ' + t.pair1name + ' vs ' + t.pair2name;
+    document.getElementById('hostScorerBody').innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;">' +
+        '<div>' +
+          '<div class="lbl" style="margin-bottom:6px;color:var(--t1);">' + t.pair1name + '</div>' +
+          '<input id="hsScoreA" type="number" min="0" max="' + goal + '" inputmode="numeric" pattern="[0-9]*"' +
+            ' placeholder="0" value="' + (t.scoreA||0) + '"' +
+            ' style="font-size:32px;font-weight:700;text-align:center;padding:14px 8px;"/>' +
+        '</div>' +
+        '<div>' +
+          '<div class="lbl" style="margin-bottom:6px;color:var(--t2);">' + t.pair2name + '</div>' +
+          '<input id="hsScoreB" type="number" min="0" max="' + goal + '" inputmode="numeric" pattern="[0-9]*"' +
+            ' placeholder="0" value="' + (t.scoreB||0) + '"' +
+            ' style="font-size:32px;font-weight:700;text-align:center;padding:14px 8px;"/>' +
+        '</div>' +
+      '</div>' +
+      '<div class="small muted" style="text-align:center;margin-top:8px;">El equipo que llegue a ' + goal + ' pts gana</div>';
+    openModal('hostScorerModal');
+    // Focus first input on next tick
+    setTimeout(function(){ var el=document.getElementById('hsScoreA'); if(el) el.focus(); }, 80);
+  });
+}
+
+async function hostSubmitScore() {
+  if(!hostScorerTid) return;
+  var elA = document.getElementById('hsScoreA');
+  var elB = document.getElementById('hsScoreB');
+  if(!elA || !elB) return;
+  var scoreA = parseInt(elA.value) || 0;
+  var scoreB = parseInt(elB.value) || 0;
+  if(scoreA === scoreB) { toast('Los marcadores no pueden ser iguales', 'err'); return; }
+  var snap = await roomRef.child('tables/' + hostScorerTid).once('value');
+  var table = snap.val(); if(!table) return;
+  var cfgSnap = await roomRef.child('cfg').once('value');
+  var c = cfgSnap.val() || cfg;
+  var goal = +(c.points || 100);
+  var winner = scoreA > scoreB ? 'A' : 'B';
+  var loserPts = Math.min(scoreA, scoreB);
+  var winnerPts = Math.max(scoreA, scoreB);
+  // Pre-load winner's score into the fake table so applyHandResult ends at the right values:
+  // applyHandResult adds loserPts to the loser and nothing to the winner,
+  // so set winner's starting score = winnerPts and loser's = 0.
+  var fakeTable = Object.assign({}, table, {
+    scoreA: winner === 'A' ? winnerPts : 0,
+    scoreB: winner === 'B' ? winnerPts : 0
+  });
+  var result = { winner: winner, winnerId: null, loserPts: loserPts, ts: Date.now() };
+  closeModal('hostScorerModal');
+  hostScorerTid = null;
+  await applyHandResult(fakeTable.id, fakeTable, result, c, goal);
+}
+
+</script>
+</body>
+</html>
